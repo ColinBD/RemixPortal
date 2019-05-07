@@ -1,0 +1,105 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      To set-up a musician/band page just fill out this form and attach a
+      profile image...<br /><br />
+
+      <!-- form items to gather the data for creating a new user -->
+      <form
+        id="newUserForm"
+        enctype="multipart/form-data"
+        action="/createArtistForm"
+        method="POST"
+        enctype="multipart/form-data"
+        onsubmit="return checkUserSignUpForm()"
+      >
+        <!-- band/artists name -->
+        Enter a name for the musician or band:<br />
+        <input
+          type="text"
+          name="artist_name"
+          id="artist_name_id"
+          maxlength="40"
+          size="40"
+        /><br /><br />
+        <!-- band/artist image -->
+        Choose a profile image (recommended size 315x500px):
+        <input type="file" name="pic" accept="image/*" /><br /><br />
+        <!-- band/artist bio -->
+        Tell us a little bit about this musicians or band:<br />
+        <textarea
+          NAME="bio"
+          id="bio_id"
+          rows="8"
+          cols="100"
+          maxlength="2000"
+          placeholder="Tell us about this musician/band..."
+        ></textarea
+        ><br /><br />
+
+        <!-- social media links -->
+        If you would like to link to social media accounts for this
+        musician/band please enter the URLs below:<br />
+        (you can enter up to six URLs)<br />
+        <input type="url" NAME="link1" id="link1_id" size="40" /><br />
+        <input type="url" NAME="link2" id="link2_id" size="40" /><br />
+        <input type="url" NAME="link3" id="link3_id" size="40" /><br />
+        <input type="url" NAME="link4" id="link4_id" size="40" /><br />
+        <input type="url" NAME="link5" id="link5_id" size="40" /><br />
+        <input type="url" NAME="link6" id="link6_id" size="40" /><br /><br />
+
+        <!-- note I'll need a hidden field to collect UID -->
+        <input type="hidden" value="0" name="theUserId" />
+        <!-- pass the token through here -->
+        <input type="hidden" value="0" name="theToken" />
+        <!-- finally a submit button -->
+        <input type="submit" value="Sumbit" name="submit" />
+      </form>
+      <div id="formCancel"></div>
+    </div>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <script>
+      //get the user object
+      user = firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          //we are logged in
+          console.log(user);
+        } else {
+          //we are not logged in - THIS SHOULD NEVER OCCUR
+          //send the user back to the home page
+          var a = document.createElement("a");
+          a.href = "/";
+          document.body.appendChild(a);
+          a.click();
+        }
+      });
+
+      //form validation
+      function checkUserSignUpForm() {
+        //check there is a musican/band name
+        if (document.getElementsByName("artist_name")[0].value == "") {
+          alert("there is a problem with the musician/band name entered");
+          return false;
+          //check all the social media URLs
+        } else {
+          console.log("form checks passed");
+          return true;
+        }
+      }
+    </script>
+  </body>
+</html>

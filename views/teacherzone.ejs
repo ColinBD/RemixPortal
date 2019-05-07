@@ -1,0 +1,151 @@
+<!-- to do 
+On another page (index.js?) when creating the teaching session in the database add in the song preview link, the artists name and song title
+
+Display this information neatly in the teaching session panel
+-->
+
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      <div id="TZHelpVid">
+        <video
+          id="video"
+          width="100%"
+          controls="true"
+          src="//remixportal.s3.amazonaws.com/video/teacherZoneHolder.mov"
+        ></video>
+      </div>
+
+      <div id="teachingSessions">
+        <!-- this will be dynamically filled from the script below -->
+      </div>
+
+      <!-- signUp Modal -->
+      <%- include partials/signUpM.ejs %>
+      <!-- signUp with email Modal -->
+      <%- include partials/signUpWithEmailM.ejs %>
+    </div>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <!-- main script -->
+    <script type="text/javascript">
+
+      //write the teaching sessions info to the div
+      if (<%=theData.length%> < 1) {
+      	//no sessions created yet
+      	$('#teachingSessions').html("<strong>You have not yet created any teaching sessions. To learn how, watch the video above.</strong>");
+      } else {
+      	//we have sessions so write them to screen
+      	var html = "<strong>You have created the following teaching sessions:</strong><br><br>";
+      	html += "<ul class='teachingSessionsList'>";
+      	<% for (var i=0;i < theData.length;i++) { %>
+      		//title and artist
+      		html += "<li><span style='font-size:14px; font-weight:bold'><%= theData[i].songTitle %> by <%= theData[i].artistName%></span>";
+      		//add the buttons
+      			//play preview button
+      		html += "<div class='teachButtons'><button type='button' class='previewBtn' id='<%=i%>' style='width:100px' onclick='playPreview(\" <%= theData[i].previewPath%> \",\"<%=i%>\")'>play preview</button> ";
+      			//copy link button
+      		html += "<button type='button' class='copyURLBtn' onclick=\"copyURL('<%=theData[i].webLink%>')\">copy link</button> ";
+      			//view analytics button
+      		html += "<button type='button' class='analyticsBtn' onclick=\"viewAnalytics(<%=theData[i].Id%>)\">view analytics</button> ";
+      		html += "<button type='button' class='deleteAnalyticsBtn' onclick=\"deleteAnalyticsSession(<%=theData[i].Id%>)\">delete</button></div>";
+      		//info
+      		html += "<br><span style='font-size:10px'>session created: <%=theData[i].created%></span>";
+      		html += "<br><br>To use this session, either tell you students to visit remixportal.co.uk then click on the 'got code?' link and enter the code: <span style='font-weight:bolder; font-size:18px'><%=theData[i].accessCode%></span><br><br>Alternatively give your students the url: <a href='<%=theData[i].webLink%>'>remixportal.co.uk<%=theData[i].webLink%></a></li>";
+      	<% }; %>
+      	html += "</ul>";
+      	console.log(html);
+      	$('#teachingSessions').html(html);
+      };
+
+      function viewAnalytics(id) {
+      	//when I call the server to get the analytics I should pass the token to ensure this user is authorised to view these anayltics
+      	alert('feature coming soon: view analytics for session with id: ' + id);
+      };
+
+      function deleteAnalyticsSession(id) {
+      	var a = document.createElement('a');
+          a.href='/deleteAnalytics/' + id + '/' + theToken;
+          document.body.appendChild(a);
+          a.click();
+      };
+
+      function copyURL(url) {
+      	var $temp = $("<input>");
+      	$("body").append($temp);
+      	$temp.val('remixportal.co.uk' + url).select();
+      	document.execCommand("copy");
+      	$temp.remove();
+      };
+
+      /****** The audio *****************/
+       	var playing = false;
+         var currentSong = '';
+         //initial set-u pof the web audio environment
+         var AudioContext = window.AudioContext;
+         var context = new AudioContext();
+         var mySoundBuffer = null;
+
+      function playPreview (song, i) {
+       		if (playing == true) { //stop the song playing
+       			stop();
+       			playing = false;
+             //set all buttons blue
+             $('.previewBtn').css({'background': '#3366ff'}); //set to blue
+             $('.previewBtn').html('play');
+             if (song != currentSong) { //i.e. a song was playing when another song's preview was clicked
+               loadSound(song);
+               playing = true;
+               currentSong = song;
+               //set 'song' button to red
+               $('.previewBtn#' + i).css({'background': '#f44336'}); //set to red
+               $('.previewBtn#' + i).html('stop');
+             };
+       		} else { //no song was playing so just start playing the song
+             loadSound(song);
+             playing = true;
+             currentSong = song;
+             //set 'song' button to red
+             $('.previewBtn#' + i).css({'background': '#f44336'}); //set to red
+             $('.previewBtn#' + i).html('stop');
+           };
+       	};
+
+         //define the load sound function
+         function loadSound(song){
+           var request = new XMLHttpRequest();
+           request.open("GET", song, true); //path to audio file
+           request.responseType = "arraybuffer"; //reads it in as binary data
+           request.onload = function() {
+             context.decodeAudioData(request.response, function (buffer) {
+               mySoundBuffer = buffer;
+               play();
+             });
+          };
+          request.send();
+        };
+
+        //play function - called from within the loadSound function
+        function play(){
+          sourceNode = context.createBufferSource();
+          sourceNode.buffer = mySoundBuffer;
+          sourceNode.connect(context.destination);
+          sourceNode.start(0);
+        };
+
+        //stop function
+        function stop() {
+        	sourceNode.stop(0);
+         sourceNode.disconnect();
+      };
+    </script>
+  </body>
+</html>

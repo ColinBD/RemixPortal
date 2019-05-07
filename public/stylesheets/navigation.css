@@ -1,0 +1,215 @@
+/* navigation */
+
+.login {
+  cursor: pointer;
+  color: #DEFF05;
+  float: right;
+	line-height: 30px;
+	padding: 0 10px;
+	position: relative;
+	font-size: 14px;
+}
+
+.RPlogo {
+	cursor: pointer;
+    font-family: Lobster;
+    color: #dfff00;
+    text-decoration: none;
+    font-size: 28px;
+    display: inline-block;
+}
+
+.RPlogoBeta {
+	position: absolute;
+	color: #dfff00;
+	font-size: 9px;
+	top: -10px;
+	right: -30px;
+	font-family: Verdana;
+	font-weight: bold;
+}
+
+#mainMenu {
+	height: 40px;
+  margin: 0;
+  /* overflow: hidden; */
+	padding: 5px 0;
+	margin-left: 180px;
+}
+
+#mainMenu li {
+	display: block;
+	float: left;
+	margin: 0;
+	padding: 0;
+}
+
+#mainMenu a {
+	cursor: pointer;
+	display: block;
+	font-weight: bold;
+	line-height: 40px;
+	margin: 0;
+	padding: 0 15px;
+}
+
+#logoutDropdown, #loginDropdown {
+  top: 40px;
+	z-index: 11;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    position: absolute;
+	right: 20px;
+	top: 20px;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ededed} /* #f1f1f1} */
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+
+#navbar {
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+
+#navbar--inner {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 0 20px;
+}
+
+#logo-wrapper {
+  line-height: 50px;
+  padding: 0;
+/*	position: relative;
+	float: left;*/
+	position: absolute;
+	left: 10px;
+}
+
+#auth-dropdown {
+  float: right !important;
+  position: relative;
+  display: block;
+}
+
+#menu-toggle {
+  color: white;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 50px;
+  padding: 0 15px;
+  z-index: 1000;
+}
+
+#menu-toggle:hover {
+  cursor: pointer;
+}
+
+#menu #logo-wrapper {
+	display: none;
+}
+
+@media(max-width: 900px) {
+	#mainMenu {
+		margin-left: 140px;
+	}
+	#mainMenu a {
+		padding: 0 10px;
+	}
+	.RPlogo {
+		font-size: 24px;
+	}
+}
+
+@media(max-width: 768px) {
+	.dropdown-content {
+		left: 50%;
+		margin-left: -80px;
+	}
+	.login {
+		float: none;
+	}
+	#logo-wrapper {
+		display: inline-block;
+		float: none;
+		margin: 0 auto;
+		position: relative;
+
+	}
+
+	#auth-dropdown {
+	    width: 100%;
+	    position: relative;    
+		z-index: 1001;
+		float: none !important;
+	}
+
+	#menu #logo-wrapper {
+		display: inline-block;
+	}
+
+  #menu-toggle {
+    display: block;
+  }
+
+	#menu {
+		background-color: #222;
+		opacity: 1;
+		display: none;
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		overflow-y: scroll;
+		z-index: 999;
+  }
+  #menu.active {
+		display: block;    
+  }
+	#mainMenu {
+		position: relative;
+    height: auto;
+    margin: 0 auto;
+		left: auto;
+		right: auto;
+	}
+	#mainMenu li {
+		float: none;
+	}
+	#mainMenu li a {
+    line-height: 44px;
+    max-width: auto;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+	}
+
+	li#gotCodeLink {
+		display: none;
+	}
+}

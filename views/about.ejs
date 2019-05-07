@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      <div id="TZHelpVid">
+        <video
+          id="video"
+          width="400px"
+          controls="true"
+          src="//remixportal.s3.amazonaws.com/video/RPMark3.mp4"
+        ></video>
+      </div>
+
+      <!-- main content -->
+      <div id="aboutText">
+        <span style="font-size: 9px; color: #999999"
+          ><center>
+            Music in the video: "Life of Riley" Kevin MacLeod
+            (incompetech.com)<br />Licensed under Creative Commons: By
+            Attribution 3.0 License, http://creativecommons.org/licenses/by/3.0/
+          </center></span
+        ><br /><br />
+        Remix Portal is a Newcastle University research project led by PhD
+        student Colin Dodds. The goal of this site is to help people become more
+        actively engaged in music making by equipping them with the skills and
+        confidence to move beyond listening to music, to music remixing and
+        beyond to composition and performance.<br /><br />
+        We are always looking for people to get involved in this project, either
+        novices who want to learn to remix music, or established musicians who
+        would be willing to contribute some of their original material. If you
+        would like to get involved or have any questions please contact Colin by
+        email: c.dodds2@newcastle.ac.uk<br /><br />
+        <a href="/terms">You can see our terms and conditions for use here</a
+        ><br /><br />
+        <p>
+          Publications arising from this project:<br />
+          <ul>
+            <li>
+              <a
+                href="http://eprint.ncl.ac.uk/file_store/production/240619/05B1CE46-66A2-4533-B668-8BD0C724B13B.pdf"
+                target="_blank"
+                >Remix Portal: Connecting Classrooms with Local Music
+                Communities</a
+              >
+            </li>
+          </ul>
+        </p>
+      </div>
+    </div>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+  </body>
+</html>

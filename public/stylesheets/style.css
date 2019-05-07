@@ -1,0 +1,107 @@
+btnbody {
+    background-image: url(/images/background.jpg);
+    background-color: black;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: center top;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+    padding: 50px;
+		font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+	color: white;
+	text-decoration: none;
+	font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 12px;
+}
+a:hover {
+	color: #fed136;
+}
+
+li {
+    display:inline;
+    padding: 0px 30px 0px 0px;
+}
+
+.login {
+		position: absolute;
+		right: 20px;
+		top: 10px;
+	}
+
+.RPlogo {
+		position: absolute;
+		top: 4px;
+		left: 15px;
+	    float: left;
+	    font-family: Lobster;
+	    color: #dfff00; /* #fed136; */
+	    text-decoration: none;
+	    font-size: 28px;
+	    vertical-align: bottom;
+	    display: inline-block;
+	    width: 150px;
+	}
+
+#menu {
+		position: absolute;
+		left: 170px;
+		top: 0px;
+	}
+
+#bottom_menu {
+		position: absolute;
+		width: 99%;
+		bottom: 3px;
+		text-align: center;
+		font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+		font-size: 12px;
+		color: #cfcfcf;
+		cursor: default;
+	}
+
+#issueReport:hover {
+	color: white;
+}
+
+
+#bottomUL {
+		margin: 0;
+	}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    position: absolute;
+	right: 20px;
+	top: 30px;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+
+#wrapper {
+	width:100%;
+	text-align: center;
+}
+

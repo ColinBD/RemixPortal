@@ -1,0 +1,116 @@
+<html>
+<head>
+	<%- include partials/head.ejs %>
+</head>
+
+<body>
+	<!-- top Menu -->
+	<%- include partials/topMenu.ejs %>
+
+	<div id='zone'>
+		<ul id="videoMenu">
+			<li id='vidQuickStart'><a>Quick Start</a>
+			</li>
+			<li id='vidOverview'><a>Mixer Overview</a>
+			</li>
+			<li id='vidUploadStems'><a>How to upload stems</a>
+			</li>
+			<li id='vidEffects'><a>Effects</a>
+			</li>
+			<li id='vidEqualisers'><a>Equalisers</a>
+			</li>
+			<li id='vidCompressors'><a>Compressors</a>
+			</li>
+			<li id='vidMasterChan'><a>MasterChan</a>
+			</li>
+			</li>
+			<li id='vidComments'><a>Comments section</a>
+		</ul>
+
+		<div id='vidWindow'>
+			<video id="video" width="100%" controls="true" src="//remixportal.s3.amazonaws.com/video/RP_Overview4.mp4"></video>
+		</div>
+
+		<div id='materials'>
+		</div>
+	</div>
+
+	<script type='text/javascript'>
+		var video = document.getElementById('video');
+		var source = document.createElement('source');
+
+		if (<%=theSelection%> == 2) { //effects selected
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/effectsFinished2.mp4';
+			$('#materials').html("");
+		} else if (<%=theSelection%> == 3) { //EQ selected
+			document.getElementById('video').src = "//remixportal.s3.amazonaws.com/video/EQ1final2.mp4";
+			$('#materials').html("");
+		} else if (<%=theSelection%> == 4) { //compressors selected
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/RP_Compressors2.mp4';
+			$('#materials').html("<a href='/mixer/1014/347' target='_blank'>Click on this link to open the compression session used in the video above</a>");
+		} else if (<%=theSelection%> == 5) { //master chan selected
+			document.getElementById('video').src = "//remixportal.s3.amazonaws.com/video/masterChan1fin2.mp4";
+			$('#materials').html("");
+		} else if (<%=theSelection%> == 6) { //upload stems selected
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/uploadInstructionsVid3.mp4';
+			$('#materials').html("<p>...or view the video below to see how to add a single stem to an existing song</p><div style='text-align:center'><video id='video' width='100%'' controls='true' src='//remixportal.s3.amazonaws.com/video/uploadSingle.mp4'></video></div><p style='text-decoration: underline'><b>INFORMATION</b></p><p>You can upload up to 8 mono audio tracks to Remix Portal. Audio files should be 128kbps mp3 files. Here are some links to videos showing you how to export stems from various DAWs. <br><br><i>note: depending on how many tracks you have in your original song you might need to bounce some tracks down to single audio files e.g. I often bounce all the individual drum parts (kick, snare, hi-hats etc) down to a single drum track and just import this into Remix Portal</i></p><p><a href='https://www.youtube.com/watch?v=NaykCkY2m-0' target='_blank'>How to export stems from Cubase</a> <br /><em>note: make sure you set your export markers (he doesn't explain this in the video)</em></p><p><a href='https://www.youtube.com/watch?v=JKWM-zM1J8M' target='_blank'>How to export stems from Logic</a></p><p><a href='https://www.youtube.com/watch?v=6cmcHBs_5wo' target='_blank'>How to export stems from Pro Tools</a></p><p><a href='https://youtu.be/gB-SupIPE64?t=1m53s' target='_blank'>How to export stems from Ableton</a></p><p>And here is a video about how to convert WAV files to mp3 files using iTunes: <a href='https://www.youtube.com/watch?v=urgCgQcdKgQ' target='_blank'>How to convert WAV files to mp3</a></p>");
+		} else if (<%=theSelection%> == 7) { //comments section selected
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/commentsFinished2.mp4';
+			$('#materials').html("");
+		} else { //otherwise just show the overview vid
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/RP_Overview4.mp4';
+			$('#materials').html("");
+		};
+
+		//quicksrat list element clicked
+		document.getElementById('vidQuickStart').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/RP_QuickStart2.mp4';
+			$('#materials').html("");
+		}; 
+		//overview list element clicked
+		document.getElementById('vidOverview').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/RP_Overview4.mp4';
+			$('#materials').html("");
+		}; 
+		//upload stems element clicked
+		document.getElementById('vidUploadStems').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/uploadInstructionsVid3.mp4';
+			$('#materials').html("<p>...or view the video below to see how to add a single stem to an existing song</p><div style='text-align:center'><video id='video' width='100%'' controls='true' src='//remixportal.s3.amazonaws.com/video/uploadSingle.mp4'></video></div><p style='text-decoration: underline'><b>INFORMATION</b></p><p>You can upload up to 8 mono audio tracks to Remix Portal. Audio files should be 128kbps mp3 files. Here are some links to videos showing you how to export stems from various DAWs. <br><br><i>note: depending on how many tracks you have in your original song you might need to bounce some tracks down to single audio files e.g. I often bounce all the individual drum parts (kick, snare, hi-hats etc) down to a single drum track and just import this into Remix Portal</i></p><p><a href='https://www.youtube.com/watch?v=NaykCkY2m-0' target='_blank'>How to export stems from Cubase</a> <br /><em>note: make sure you set your export markers (he doesn't explain this in the video)</em></p><p><a href='https://www.youtube.com/watch?v=JKWM-zM1J8M' target='_blank'>How to export stems from Logic</a></p><p><a href='https://www.youtube.com/watch?v=6cmcHBs_5wo' target='_blank'>How to export stems from Pro Tools</a></p><p><a href='https://youtu.be/gB-SupIPE64?t=1m53s' target='_blank'>How to export stems from Ableton</a></p><p>And here is a video about how to convert WAV files to mp3 files using iTunes: <a href='https://www.youtube.com/watch?v=urgCgQcdKgQ' target='_blank'>How to convert WAV files to mp3</a></p>");
+		}; 
+		//effects list element clicked
+		document.getElementById('vidEffects').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/effectsFinished2.mp4';
+			$('#materials').html("");
+		}; 
+		//equalisers list element clicked
+		document.getElementById('vidEqualisers').onclick = function () {
+			document.getElementById('video').src = "//remixportal.s3.amazonaws.com/video/EQ1final2.mp4";
+			$('#materials').html("");
+		}; 
+		//compressors list element clicked
+		document.getElementById('vidCompressors').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/RP_Compressors2.mp4';
+			$('#materials').html("<a href='/mixer/1014/347' target='_blank'>Click on this link to open the compression session used in the video above</a>");
+		}; 
+		//master channel list element clicked
+		document.getElementById('vidMasterChan').onclick = function () {
+			document.getElementById('video').src = "//remixportal.s3.amazonaws.com/video/masterChan1fin2.mp4";
+			$('#materials').html("");
+		}; 
+		//comments section list element clicked
+		document.getElementById('vidComments').onclick = function () {
+			document.getElementById('video').src = '//remixportal.s3.amazonaws.com/video/commentsFinished2.mp4';
+			$('#materials').html("");
+		}; 
+	</script>
+	
+	<!-- signUp Modal -->
+	<%-  include partials/signUpM.ejs %>
+
+	<!-- signUp with email Modal -->
+	<%- include partials/signUpWithEmailM.ejs %>
+	
+	<!-- user login script -->
+	<script src="/resources/userLogin.js"></script>
+</body>
+</html>

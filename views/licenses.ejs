@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+
+  <body>
+    <!-- topMenu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="licenseZone"></div>
+
+    <script>
+      var theHTML = "License information <br><ul class='licUL'>";
+
+      <% for (var i=0; i<theStuff.length; i++) { %>
+             //theHTML += "<li>Drums dance by Colin (c) copyright 2017 Licensed under a Creative Commons <a href='http://creativecommons.org/licenses/by/3.0/''>Attribution (3.0)</a>license.</li><br>";
+             theHTML += "<li>'<%=theStuff[i].label%>' <%-theStuff[i].license%> </li>"
+             <% } %>
+      theHTML += "</ul>";
+      //write it to the div
+      document.getElementById('licenseZone').innerHTML = theHTML;
+    </script>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+  </body>
+</html>

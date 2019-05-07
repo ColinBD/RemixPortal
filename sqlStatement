@@ -1,0 +1,154 @@
+-- phpMyAdmin SQL Dump
+-- version 4.4.10
+-- http://www.phpmyadmin.net
+--
+-- Host: localhost:8889
+-- Generation Time: Mar 31, 2017 at 05:25 PM
+-- Server version: 5.5.42
+-- PHP Version: 5.6.10
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+--
+-- Database: `RP2`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `song_choices`
+--
+
+CREATE TABLE `song_choices` (
+  `songId` int(11) NOT NULL,
+  `artist` varchar(255) NOT NULL,
+  `songTitle` varchar(255) NOT NULL,
+  `previewPath` varchar(255) NOT NULL,
+  `mixPath` varchar(255) NOT NULL,
+  `geolocation` varchar(255) NOT NULL,
+  `genre` varchar(255) NOT NULL,
+  `dateAdded` date NOT NULL,
+  `tags` varchar(255) NOT NULL,
+  `heat` int(11) NOT NULL,
+  `Approved` tinyint(1) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `song_choices`
+--
+
+INSERT INTO `song_choices` (`songId`, `artist`, `songTitle`, `previewPath`, `mixPath`, `geolocation`, `genre`, `dateAdded`, `tags`, `heat`, `Approved`) VALUES
+(1, 'Police', 'Next to You', '/music/police/next_to_you/preview.mp3', 'http://localhost:3000/mixer/1', '', '', '0000-00-00', '', 0, 1),
+(2, 'REM', 'Orange Crush', '/music/REM/Orange_Crush/preview.mp3', 'http://localhost:3000/mixer/2', '', '', '0000-00-00', '', 0, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `song_mixes`
+--
+
+CREATE TABLE `song_mixes` (
+  `id` int(11) NOT NULL,
+  `songId` int(11) NOT NULL,
+  `user_Id` int(11) NOT NULL,
+  `t1lbl` varchar(255) NOT NULL,
+  `t2lbl` varchar(255) NOT NULL,
+  `t3lbl` varchar(255) NOT NULL,
+  `t4lbl` varchar(255) NOT NULL,
+  `t5lbl` varchar(255) NOT NULL,
+  `t6lbl` varchar(255) NOT NULL,
+  `t1vol` int(11) NOT NULL,
+  `timeStamp` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `song_setup`
+--
+
+CREATE TABLE `song_setup` (
+  `id` int(11) NOT NULL,
+  `songId` int(11) NOT NULL,
+  `track` int(11) NOT NULL,
+  `label` varchar(255) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  `origTrack` tinyint(1) NOT NULL,
+  `Approved` tinyint(1) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `song_setup`
+--
+
+INSERT INTO `song_setup` (`id`, `songId`, `track`, `label`, `path`, `origTrack`, `Approved`) VALUES
+(1, 1, 1, 'Drums', '/music/Police/Next_To_You/Drums_Police.mp3', 1, 1),
+(2, 1, 2, 'Bass', '/music/Police/Next_To_You/Bass_Police.mp3', 1, 1),
+(3, 1, 3, 'Guitars', '/music/Police/Next_To_You/Guitars_Police.mp3', 1, 1),
+(4, 1, 4, 'Vocals', '/music/Police/Next_To_You/Vocals_Police.mp3', 1, 1),
+(5, 1, 5, 'Extras', '/music/Police/Next_To_You/Extras_Police.mp3', 1, 1),
+(6, 2, 1, 'Drums', '/music/REM/Orange_Crush/REM_Drums.mp3', 1, 1),
+(7, 2, 2, 'Bass', '/music/REM/Orange_Crush/REM_Bass.mp3', 1, 1),
+(8, 2, 3, 'Guitars', '/music/REM/Orange_Crush/REM_Guitars.mp3', 1, 1),
+(9, 2, 4, 'Vocals', '/music/REM/Orange_Crush/REM_Vocals.mp3', 1, 1),
+(10, 2, 5, 'Extras', '/music/REM/Orange_Crush/REM_Extras.mp3', 1, 1);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `song_choices`
+--
+ALTER TABLE `song_choices`
+  ADD PRIMARY KEY (`songId`);
+
+--
+-- Indexes for table `song_mixes`
+--
+ALTER TABLE `song_mixes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `songId` (`songId`) USING BTREE;
+
+--
+-- Indexes for table `song_setup`
+--
+ALTER TABLE `song_setup`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `songId` (`songId`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `song_choices`
+--
+ALTER TABLE `song_choices`
+  MODIFY `songId` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+--
+-- AUTO_INCREMENT for table `song_mixes`
+--
+ALTER TABLE `song_mixes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `song_setup`
+--
+ALTER TABLE `song_setup`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=11;
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `song_mixes`
+--
+ALTER TABLE `song_mixes`
+  ADD CONSTRAINT `song_choices_mixes` FOREIGN KEY (`songId`) REFERENCES `song_choices` (`songId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `song_setup`
+--
+ALTER TABLE `song_setup`
+  ADD CONSTRAINT `song_choices_setup` FOREIGN KEY (`songId`) REFERENCES `song_choices` (`songId`) ON DELETE CASCADE ON UPDATE CASCADE;

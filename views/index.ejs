@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+
+  <body>
+    <!-- topMenu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      <!-- main video -->
+      <div id="quickStartVid">
+        <video
+          id="video"
+          width="100%"
+          controls="true"
+          src="//remixportal.s3.amazonaws.com/video/RP_QuickStart2.mp4"
+        ></video>
+      </div>
+
+      <!-- GO button -->
+      <div id="beginBtn"><span id="beginTxt">Go</span></div>
+
+      <!-- copyright notice -->
+      <div id="copyright">Copyright © 2017 Colin Dodds</div>
+
+      <!-- got another code? modal -->
+      <div id="myModal_gotAnotherCode" class="modal">
+        <!-- Modal content -->
+        <div id="modal_gotAnotherCode_content" class="modal-content">
+          <span class="modal-close">&times;</span>
+          <h2>
+            That code was not found in our database - try entering it again
+          </h2>
+          <!-- form items to gather the data for the upload -->
+          <form
+            id="gotCodeForm"
+            enctype="multipart/form-data"
+            action="/classSession"
+            method="POST"
+            enctype="multipart/form-data"
+            onsubmit="return checkGotCodeForm()"
+          >
+            <!-- enter code box -->
+            <p>Enter the 5 character code your teacher gave you here:</p>
+            <input
+              type="text"
+              name="gotCodeInput"
+              id="gotCode_id"
+              maxlength="5"
+              size="5"
+              style="border: #e1e1e1 1px solid; font-size:25px;"
+            />
+            <br /><br />
+            <!-- finally a submit button -->
+            <input
+              type="submit"
+              value="Submit"
+              name="submit"
+              class="submitBtn"
+            />
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- script to handle the button click -->
+    <script type="text/javascript">
+      document.getElementById("beginBtn").onclick = function() {
+        window.location.href = "/explorer";
+      };
+    </script>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <!-- check if we came here from an unsuccesful 'got code' form submission -->
+    <script type="text/javascript">
+      console.log("<%=msg.length%>");
+      if ("<%=msg%>" == "codeNotFound") {
+        console.log("code not found");
+        $("#myModal_gotAnotherCode").css({ display: "block" });
+      }
+    </script>
+  </body>
+</html>

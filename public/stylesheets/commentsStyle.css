@@ -1,0 +1,258 @@
+#Container {
+  /*background: yellow; */
+  display: flex;
+  flex-wrap: wrap;
+  height: 603px; 
+  max-width: 100%;
+  transition:0.5s;
+  margin: auto;
+  text-align: center;
+}
+#mixerWrapper {
+  flex: 1;
+  overflow-x: auto;
+  /*background-color: blue;*/
+}
+
+#commentsWrapper {
+  display: flex;
+  border-radius: 20px 0px 0px 20px;
+  background: #278efd;
+  overflow: hidden;
+  /*position: fixed;*/
+  /*top: 50px;
+  bottom: 10px;
+  right: 0;*/
+  z-index: 999;
+}
+
+#toggleComments {
+  cursor: pointer;
+}
+
+#commentsWrapper label {
+  display: block;
+  /*background: tomato;*/
+  color: white;
+  width: 2em;
+  margin: 2em 0 0 0em;
+  white-space: nowrap;
+  transform: rotate(90deg);
+  cursor: pointer;
+  text-align: center;
+}
+
+#theComments {
+  background: white;
+  width: 400px;
+  margin-right: -400px;
+  transition: 0.2s;
+  overflow-y: auto;
+  text-align: left;
+  font-size: 11px;
+  height: 603px;
+}
+
+#enterCommentBox {
+  width:360px;
+  height: 60px;
+  resize: none;
+  border-radius: 10px;
+  border-width: 3px;
+  border-color: #999999;
+}
+
+#addSuggestionBtn {
+    background-color: #009900; /* green */
+    border: none;
+    color: white;
+    width: 100px;
+    height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 10px;
+}
+
+#addSuggestionBtn:hover {
+    background-color: #5fb962; 
+}
+
+#postCommentBtn {
+    background-color: #0040ff; /* Blue */
+    border: none;
+    color: white;
+    width: 100px;
+    height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+#postCommentBtn:hover {
+    background-color: #3366ff; 
+}
+
+.comment {
+  margin: 5px;
+}
+
+#mixSelectControls {
+  display: none;
+}
+
+#commentNameLbl {
+  color: #0040ff;
+  background-color: lightgrey;
+}
+
+#commentTimestamp {
+  float: right;
+  color: darkslategrey; 
+  font-size: 9px;
+}
+
+#commentQuestion {
+  margin: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  padding-bottom: 10px;
+}
+
+.showRating {
+  background-color: gray;
+  color: white;
+  border-radius: 15px;
+  padding: 10px;
+  border-color: darkgray;
+  border-style: solid;
+  border-width: 2px;
+}
+
+.submitFBBtn {
+  background-color: #4CAF50; 
+    border: none;
+    color: white;
+    width: 60px;
+    height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+#suggestionMsg {
+  display: none;
+  font-weight: bold;
+}
+
+.auditionBtn {
+  float: right;
+  background-color: #009900; 
+  border: none;
+  color: white;
+  width: 125px;
+  height: 22px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 10px;
+}
+
+a.commentTimeLink{
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* outlines divs for controls */
+.border {
+  position: absolute;
+  border-color: yellow;
+  border-style: solid;
+  border-width: 4px;
+  z-index: 11;
+  border-radius: 15px;
+  display: none;
+}
+.sampleBorder {
+  width: 122px;
+  height: 31px;
+}
+.eqBorder {
+  top: 2px;
+  width: 122px;
+  height: 200px;
+}
+.compBorder {
+  top: 220px;
+  width: 122px;
+  height: 110px;
+}
+.faderBorder {
+  top: 359px;
+  width: 57px;
+  height: 156px;
+}
+.panBorder {
+  top: 363px;
+  width: 38px;
+  height: 39px;
+  left: 84px;
+}
+.driveBorder {
+  top: 410px;
+  width: 38px;
+  height: 39px;
+  left: 84px;
+}
+.reverbBorder {
+  top: 456px;
+  width: 38px;
+  height: 39px;
+  left: 84px;
+}
+.delayBorder {
+  top: 502px;
+  width: 38px;
+  height: 39px;
+  left: 84px;
+}
+.muteBorder {
+  top: 522px;
+  width: 27px;
+  height: 27px;
+  left: 35px;
+}
+#tempoBorder {
+  top: 15px;
+  width: 60px;
+  height: 54px;
+  left: 30px;
+}
+#delayMasterBorder {
+  top: 78px;
+  width: 122px;
+  height: 118px;
+}
+#reverbMasterBorder {
+  top: 204px;
+  width: 122px;
+  height: 107px;
+}
+#commentsQ {
+    width: 14px;
+    height: 12px;
+    font-size: 8px;
+    border-radius: 12px;
+    text-align: center;
+    line-height: 12px;
+    background: #da0e0e;
+    cursor:crosshair;
+    box-shadow: 0 0 0 1px #c7c7c7;
+    margin-top: 20px;
+    margin-left: 7px;
+    color: white;
+}

@@ -1,0 +1,1490 @@
+#mixer {
+	margin: auto;
+	width:1181px; 
+	height: 588px; 
+	/*top: 33px;
+	margin:0 auto; */
+	background-color: #808080;
+	/*position:relative; 
+	display: inline-block;
+	vertical-align:top;*/ 
+	border-radius: 8px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	text-align: left;
+}
+
+#filters, #filterGenre, #filterArtists {
+	width:120px; 
+	position:relative;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	margin-right: 5px;
+	margin-bottom: 30px;
+	/*float: left;*/
+	overflow-y: auto;
+	font-size: 14px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+#filterGenre, #filterArtists {
+	overflow-y: auto;
+	display: none;
+}
+
+#songlist {
+	width: 400px;
+	position:relative;
+	/*float:left;*/
+	overflow-y: scroll;
+	margin: 0 auto;
+	max-width: 100%;
+	display: inline-block;
+}
+
+.remixBtn {
+    background-color: #ff7b00; /* Orange */
+    border: none;
+    color: white;
+   	width: 50px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.remixBtn:hover {
+    background-color: #ff9000; /* lighter orange */
+}
+
+.previewBtn {
+    background-color: #3366ff; /* Blue */
+    border: none;
+    color: white;
+   	width: 50px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.previewBtn:hover {
+    background-color: #328bff; /* lighter blue */
+}
+
+.myUL {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 14px;
+}
+
+.licUL {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 14px;
+  background-color: #434746;
+ }
+
+ .licUL li {
+  border: 1px solid black;/* #ddd; */
+  padding: 6px;
+  display: block;
+  text-align: left;
+}
+
+
+.myUL li {
+  border: 2px solid black;/* #ddd; */
+  background-color: #f6f6f6;
+  padding: 12px;
+  display: block;
+}
+
+.myUL a{
+	font-size: 14px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-weight: bold;
+}
+
+#songlist a:hover{
+	color: #fed136;
+}
+
+#selector a {
+	color: #24231f;
+}
+
+#zone {
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 30px 20px;
+} 
+
+#zone.terms {
+	color: white;
+} 
+
+#artistZone { /* used in artist page */
+	color: white;
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	width: 80%; 
+	padding-top: 10px;
+	margin: 0 auto;
+	clear:both;
+} 
+
+#blurb { /* used in artist page */
+	text-align: left;
+}
+
+#mainText {
+	color: white;
+	text-align: left;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	width: 80%; 
+	padding-top: 70px;
+	margin: 0 auto;
+	clear:both;
+}
+
+#quickStartVid {
+	color: white;
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	margin: 0 auto;
+}
+
+#introMessage {
+	color: white;
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-size: 80px;
+	width: 80%; 
+	padding-top: 120px;
+	margin: 0 auto;
+	clear:both;
+}
+
+#beginBtn {
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-weight: bold;
+	font-size: 35px;
+	border-radius: 4px;
+	width: 190px;
+	height: 70px; 
+	background-color: #dfff00;
+	color: #222;
+	/*padding-top: 250px;*/
+	vertical-align: middle;
+	margin: 30px auto;
+}
+
+#beginTxt {
+  position: relative;
+  top: 8px;
+  cursor: default;
+}
+
+.channel {
+	background-color: #434746;
+	width:130px; 
+	height:578px;
+	position:relative;
+	display: inline-block;
+	vertical-align:top;
+	top: 4px;
+	bottom: 4px;
+	border-radius: 8px; 
+	margin-left:4px; 
+    color: white;	
+} 
+
+.mChan {
+	background-color: #313837;
+	width:130px; 
+	height:578px;
+	position:relative;
+	/*float: right;*/
+	display: inline-block;
+	vertical-align:top;
+	top: 4px;
+	bottom: 4px;
+	border-radius: 8px; 
+	margin-left:4px; 
+	margin-right:4px; 
+    color: white;	
+} 
+
+
+#C1{
+	margin-left:4px;
+}
+
+
+.slider {
+ 	position: absolute;
+} 
+
+.sampSelect {
+	position: absolute;
+	width: 100%;
+	/*left: 40px;*/
+	top: 12px;
+	text-align: center;
+	font-size: 16px;
+
+}
+
+#sampleSelectLbl {
+	font-size: 10px;
+	position: absolute;
+	width: 100%;
+	top: 3px;
+	text-align: center;
+}
+
+.controlLbls {
+	font-size: 8px;
+	position: absolute;
+	z-index: 10;
+	cursor:default;
+}
+
+.EQHGlbl {
+	top:50px;
+	left: 5px;
+}
+
+.EQHFlbl {
+	top:50px;
+	left: 69px;
+}
+
+.EQHQlbl {
+	top:50px;
+	left: 95px;
+}
+
+.EQHMGlbl {
+	top:95px;
+	left: 8px;
+}
+
+.EQHMFlbl {
+	top:95px;
+	left: 50px;
+}
+
+.EQHMQlbl {
+	top:95px;
+	left: 97px;
+}
+
+.EQLMGlbl {
+	top:141px;
+	left: 9px;
+}
+
+.EQLMFlbl {
+	top:141px;
+	left: 50px;
+}
+
+.EQLMQlbl {
+	top:141px;
+	left: 97px;
+}
+
+.EQLGlbl {
+	top:188px;
+	left: 8px;
+}
+
+.EQLFlbl {
+	top:188px;
+	left: 70px;
+}
+
+.EQLQlbl {
+	top:188px;
+	left: 96px;
+}
+
+.cThreshlbl {
+	top: 272px;
+	left: 5px;
+}
+
+.cRatiolbl {
+	top: 272px;
+	left: 57px;
+}
+
+.cMUlbl {
+	top: 272px;
+	left: 90px;
+}
+
+.cAttacklbl {
+	top: 318px;
+	left: 11px;
+}
+
+.cReleaselbl {
+	top: 318px;
+	left: 52px;
+}
+
+.cKneelbl {
+	top: 318px;
+	left: 98px;
+}
+
+.panlbl {
+	top: 394px;
+	left: 101px;
+}
+
+.drivelbl {
+	top: 441px;
+	left: 98px;
+}
+
+.reverblbl {
+	top: 488px;
+	left: 95px;
+}
+
+.delaylbl {
+	top: 533px;
+	left: 97px;
+}
+
+.equalizerlbl {
+	position: absolute;
+	top: 4px;
+	left: 13px;
+	z-index: 10;
+	font-size: 11px;
+	text-align: center;
+	color: #7e7f7e;
+	cursor:default;
+}
+
+.compressorlbl {
+	position: absolute;
+	top: 225px;
+	left: 13px;
+	z-index: 10;
+	font-size: 11px;
+	text-align: center;
+	color: #7e7f7e;
+	cursor:default;
+}
+
+
+
+
+/****** For the rotary knobs **********/
+	.rs-control .rs-range-color {
+    background-color: #dfff00;
+	}
+	.rs-control .rs-path-color {
+	    background-color: #808080;
+	}
+	.rs-control .rs-handle {
+	    background-color: white; /* #434343 */
+	}
+	
+	.rs-control .rs-bg-color {
+	    background-color: #434746; 
+	}
+
+	#playSpd .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#revType .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#revHPF .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#revLPF .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#DlayT .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#DlayFB .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#DlayHPF .rs-bg-color {
+	    background-color: #313837; 
+	}
+
+	#DlayLPF .rs-bg-color {
+	    background-color: #313837; 
+	}
+	
+
+	/* EQ dial styling */
+	.EQHG {
+		left: 31px;
+		top: 62px;
+	}
+
+	.EQHF {
+		left: 52px;
+		top: 62px;
+		
+	}
+
+	.EQHQ {
+		left: 94px;
+		top: 62px;
+
+	}
+
+	.EQHMG {
+		left: 10px;
+		top: 108px;
+	}
+
+	.EQHMF {
+		left: 52px;
+		top: 108px;
+		
+	}
+
+	.EQHMQ {
+		left: 94px;
+		top: 108px;
+
+	}
+
+	.EQLMG {
+		left: 10px;
+		top: 154px;
+	}
+
+	.EQLMF {
+		left: 52px;
+		top: 154px;
+		
+	}
+
+	.EQLMQ {
+		left: 94px;
+		top: 154px;
+
+	}
+
+	.EQLG {
+		left: 31px;
+		top: 200px;
+	}
+
+	.EQLF {
+		left: 52px;
+		top: 200px;
+		
+	}
+
+	.EQLQ {
+		left: 94px;
+		top: 200px;
+
+	}
+
+	.compThresh {
+		left: 10px;
+		top: 264px;
+
+	}
+
+	.compRatio {
+		left: 52px;
+		top: 264px;
+
+	}
+
+	.compMakeup {
+		left: 94px;
+		top: 264px;	
+	}
+
+	.compAttack {
+		left: 10px;
+		top: 311px;
+	}
+
+	.compRelease {
+		left: 52px;
+		top: 311px;
+
+	}
+
+	.compKnee {
+		left: 94px;
+		top: 311px;
+
+	}
+
+	.pan {
+		left: 94px;
+		top: 370px;
+
+	}
+
+	.drive {
+		left: 94px;
+		top: 416px;
+
+	}
+
+	.reverb {
+		left: 94px;
+		top: 462px;
+
+	}
+
+	.delay {
+		left: 94px;
+		top: 508px;
+
+	}
+
+	.Pro {
+		position: absolute;
+		z-index: 10;
+		width: 20px;
+	    height: 12px;
+		font-size: 8px;
+		border-radius: 4px;
+		text-align: center;
+		line-height: 12px;
+		background: #da0e0e; 
+		cursor:crosshair;
+		box-shadow: 0 0 0 1px #808080;
+	}
+
+	.Q{
+		position: absolute;
+		z-index: 10;
+		width: 14px;
+	    height: 12px;
+		font-size: 8px;
+		border-radius: 12px;
+		text-align: center;
+		line-height: 12px;
+		background: #da0e0e;
+		cursor:crosshair;
+		box-shadow: 0 0 0 1px #808080;
+	}
+
+	#ecoBtn {
+		position: absolute;
+		z-index: 10;
+		width: 40px;
+	    height: 16px;
+		font-size: 8px;
+		border-radius: 4px;
+		text-align: center;
+		line-height: 16px;
+		background: #169316; 
+		cursor:crosshair;
+		box-shadow: 0 0 0 1px #dddcdc;
+		top: 5px;
+		left: 4px;
+	}
+
+	.info{
+		position: absolute;
+		top: 4px;
+		left: 110px;
+		z-index: 10;
+		width: 11px;
+	    height: 11px;
+		font-size: 10px;
+		font-weight: bold;
+		font-family: Lobster;
+		border-radius: 12px;
+		text-align: center;
+		line-height: 12px;
+		background: #137adb;
+		cursor:crosshair;
+		box-shadow: 0 0 0 1px #808080;
+	}
+
+	.upload{
+		position: absolute;
+		z-index: 10;
+		width: 14px;
+	    height: 12px;
+	    left: 3px;
+	    top: 3px;
+		font-size: 8px;
+		border-radius: 12px;
+		text-align: center;
+		line-height: 12px;
+		background: #278efd; /* #0E30DA; */
+		cursor:crosshair;
+		box-shadow: 0 0 0 1px #808080;
+	}
+
+	.EQPro {
+		left: 89px;
+		top: 44px;
+	}
+
+	.EQQ {
+		left: 113px;
+		top: 44px;
+	}
+
+	.compPro {
+		left: 89px;
+		top: 246px;
+	}
+
+	.compQ {
+		left: 113px;
+		top: 246px;
+	}
+
+	.otherQ {
+		left: 101px;
+		top: 547px;
+	}
+
+	.MasterPro {
+		left: 89px;
+		top: 5px;
+	}
+
+	.MasterQ {
+		left: 113px;
+		top: 5px;
+	}
+
+	.channellbl {
+		position: absolute;
+		top: 552px; /* 564px; */
+		width: 100%;
+		text-align: center;
+		font-size: 18px;
+		cursor:default;
+	}
+
+	.soloBtn {
+		position: absolute;
+		width: 25px;
+		height: 25px;
+		top: 525px;
+		left: 12px;
+		line-height: 25px;
+		font-size: small;
+		border-radius: 5px;
+		background: rgb(128, 128, 128); /* toggles to rgb(46, 184, 46) when div is clicked */
+		text-align: center;
+		cursor:crosshair;
+	}
+
+	.muteBtn {
+		position: absolute;
+		width: 25px;
+	    height: 25px;
+	    top: 525px;
+	    left: 40px;
+	    line-height: 25px;
+	    font-size: small;
+	    border-radius: 5px;
+	    background: rgb(128, 128, 128); /* toggles to rgb(255, 102, 0) when div is clicked */
+	    text-align: center;
+	    cursor:crosshair;
+   		
+	}
+
+	.dbMeter {
+		position: absolute;
+		top: 380px;
+		left: 65px;
+		background-color: #434746;
+	}
+
+	#bigFader {
+		width: 80%;
+	}
+
+	/*** STYLE THE SLIDER *****/
+	/* 1) REMOVE ORIGINAL STYLE ****/
+	input.volFader[type=range] {
+	  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+	  
+	  width: 150px; /* Specific width is required for Firefox. */
+	  transform: rotate(270deg);
+	  background-color: #434746;
+	  position: absolute;
+		top: 438px;
+		left: -45px;
+	}
+
+	input.volFader[type=range]::-webkit-slider-thumb {
+	  -webkit-appearance: none;
+	}
+
+	input.volFader[type=range]:focus {
+	  outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+	}
+
+	input.volFader[type=range]::-ms-track {
+	  width: 175px;
+	  /*cursor: pointer;*/
+	  background: transparent; /* Hides the slider so custom styles can be added */
+	  border-color: transparent;
+	  color: transparent;
+	}
+	/* 2) STYLE THUMB *****/
+	/*** THUMB STYLE FROM http://codepen.io/collection/DgYaMj/5/ ***/
+		input.volFader[type='range']::-webkit-slider-thumb {
+		margin-top: -1.2em;
+	  	box-sizing: border-box;
+		  border: solid 0 transparent;
+		  border-width: 1px .3125em;
+		  width: 2.25em;
+		  height: 3em;
+		  border-radius: 0.5em;
+		  box-shadow: -0.84375em 0 0.84375em -0.84375em #111, -0.84375em 0 1.125em -0.84375em #111, -0.84375em 0 1.40625em -0.84375em #111, -0.84375em 0 1.6875em -0.84375em #111, -0.84375em 0 1.96875em -0.84375em #111, -1.125em 0 2.25em -0.84375em #111;
+		  background: linear-gradient(90deg, #f5f5f5, #bbbbbb) content-box, linear-gradient(90deg, #a9a9a7, #f7f7f7) border-box;
+		  /*cursor: ns-resize;*/
+		}
+		input.volFader[type='range']::-moz-range-thumb {
+		  box-sizing: border-box;
+		  border: solid 0 transparent;
+		  border-width: 1px .3125em;
+		  width: 2.25em;
+		  height: 3.5em;
+		  border-radius: 0.5em;
+		  box-shadow: -0.84375em 0 0.84375em -0.84375em #111, -0.84375em 0 1.125em -0.84375em #111, -0.84375em 0 1.40625em -0.84375em #111, -0.84375em 0 1.6875em -0.84375em #111, -0.84375em 0 1.96875em -0.84375em #111, -1.125em 0 2.25em -0.84375em #111;
+		  background: linear-gradient(90deg, #f5f5f5, #bbbbbb) content-box, linear-gradient(90deg, #a9a9a7, #f7f7f7) border-box;
+		  /*cursor: ns-resize;*/
+		}
+		input.volFader[type='range']::-ms-thumb {
+		  box-sizing: border-box;
+		  border: solid 0 transparent;
+		  border-width: 1px .3125em;
+		  width: 2.25em;
+		  height: 3.5em;
+		  border-radius: 0.5em;
+		  box-shadow: -0.84375em 0 0.84375em -0.84375em #111, -0.84375em 0 1.125em -0.84375em #111, -0.84375em 0 1.40625em -0.84375em #111, -0.84375em 0 1.6875em -0.84375em #111, -0.84375em 0 1.96875em -0.84375em #111, -1.125em 0 2.25em -0.84375em #111;
+		  background: linear-gradient(90deg, #f5f5f5, #bbbbbb) content-box, linear-gradient(90deg, #a9a9a7, #f7f7f7) border-box;
+		  /*cursor: ns-resize;*/
+		}
+
+		/********* STYLE THE TRACK ********************/
+		input.volFader[type=range]::-webkit-slider-runnable-track {
+		  width: 100%;
+		  height: 8.4px;
+		  /*cursor: pointer;*/
+		  background: linear-gradient(to bottom, #808080 , #000000, #808080);
+		  border-radius: 1.3px;
+		  			
+		}
+
+		input.volFader[type=range]::-moz-range-track {
+		  width: 100%;
+		  height: 8.4px;
+		  background: linear-gradient(to bottom, #808080 , #000000, #808080);
+		  
+		}
+
+		input.volFader[type=range]::-ms-track {
+		  width: 100%;
+		  height: 8.4px;
+		  /*cursor: pointer;*/
+		  background: transparent;
+		  border-color: transparent;
+		  border-width: 16px 0;
+		  color: transparent;
+		}
+		input.volFader[type=range]::-ms-fill-lower {
+		  background: #2a6495;
+		  border: 0.2px solid #010101;
+		  border-radius: 2.6px;
+		  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+		}
+		input.volFader[type=range]:focus::-ms-fill-lower {
+		  background: #3071a9;
+		}
+		input.volFader[type=range]::-ms-fill-upper {
+		  background: #3071a9;
+		  border: 0.2px solid #010101;
+		  border-radius: 2.6px;
+		  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+		}
+		input.volFader[type=range]:focus::-ms-fill-upper {
+		  background: #367ebd;
+		}
+
+	/*** MASTER CHANNEL RULES ***/
+		#mLabel {
+		top: 552px;
+		font-size: 18px;
+		color: white;
+		}
+
+	/* EQ dial styling */
+		#playSpd {
+			left: 47px;
+			top: 22px;
+		}
+
+		#revType {
+			left: 52px;
+			top: 225px;
+		}
+
+		#revHPF {
+			left: 21px;
+			top: 260px;
+		}
+
+		#revLPF {
+			left: 81px;
+			top: 260px;
+		}
+
+		#DlayT {
+			left: 21px;
+			top: 100px;
+		}
+
+		#DlayFB {
+			left: 81px;
+			top: 100px;
+		}
+
+		#DlayHPF {
+			left: 21px;
+			top: 147px;
+		}
+
+		#DlayLPF {
+			left: 81px;
+			top: 147px;
+		}
+
+		/*labels for master channel */
+		.Mlbl {
+			position: absolute;
+			font-size: 11px;
+			z-index: 10;
+			cursor:default;
+			width: 100%;
+			text-align: center;
+			color: #7e7f7e;
+		}
+
+		#Dlbl {
+			top: 80px;
+		}
+
+		#Rlbl {
+			top: 205px;
+		}
+
+		#PSpd {
+			top: 52px;
+			font-size: 12px;
+			width: 100%;
+			text-align: center;
+		}
+
+		#delayTlbl {
+			top: 127px;
+			left: 16px;
+			width: 50px;
+			text-align: center;
+		}
+
+		#delayFBlbl {
+			top: 127px;
+			left: 72px;
+			width: 50px;
+		}
+
+		#delayHPFlbl {
+			top: 175px;
+			left: 16px;
+			width: 50px;
+			text-align: center;
+		}
+
+		#delayLPFlbl {
+			top: 175px;
+			left: 65px;
+			width: 50px;
+			text-align: center;
+		}
+
+		#reverbTypelbl {
+			top: 240px;
+			left: 43px;
+			width: 50px;
+		}
+
+		#reverbHPFlbl {
+			top: 287px;
+			left: 16px;
+			width: 50px;
+			text-align: center;
+		}
+
+		#reverbLPFlbl {
+			top: 287px;
+			left: 65px;
+			width: 50px;
+			text-align: center;
+		}
+
+		.btns {
+			position: absolute;
+			background-color: #808080;
+			border-radius: 10px; 
+			border: 2px solid #404040;
+			text-align: center;
+			vertical-align: middle;
+			cursor: default;
+		}
+
+		#playBtn {
+			width: 37px;
+			height: 37px;
+			top: 445px;
+			left: 58px;
+			line-height: 25px;
+			font-size: medium;
+			border-radius: 20px;
+			background-color: #2eb82e;
+			border: 2px solid white;
+			background-image: url('/images/playBtnMed.png');
+			background-repeat: no-repeat;
+		    background-position: -4px;
+		    text-shadow:1px 1px 5px #434746;
+		    display: none;
+		    z-index: 13; /* Sit on top */
+		}
+
+		#pauseBtn {
+			width: 37px;
+			height: 37px;
+			top: 445px; 
+			left: 58px;
+			line-height: 25px;
+			font-size: medium;
+			background-color: #3366ff;
+			border: 2px solid white;
+			border-radius: 20px;
+			background-image: url('/images/pauseBtnMed.png');
+			background-repeat: no-repeat;
+		    background-position: -4px;
+		    text-shadow:1px 1px 5px #434746;
+		    display: none;
+		    z-index: 13; /* Sit on top */
+		}
+
+		#stopBtn {
+			width: 29px;
+			height: 29px;
+			top: 449px;
+			left: 21px;
+			line-height: 25px;
+			font-size: medium;
+			background-color: #ff0000;
+			border: 2px solid white;
+			border-radius: 20px;
+			text-shadow:1px 1px 5px #434746;
+			background-image: url('/images/stopBtnMed.png');
+			background-repeat: no-repeat;
+		    background-position: center;
+		    display: none;
+		    z-index: 13; /* Sit on top */
+		}
+
+		#resetBtn {
+			width: 52px;
+			height: 17px;
+			top: 506px;
+			left: 71px;
+			line-height: 17px;
+			font-size: 11px;
+			background-color: #ff9933;
+			border: 2px solid white;
+			border-radius: 12px;
+			text-shadow:1px 1px 5px #434746;
+		}
+		#resetBtn:hover {
+			background-color: #ffb366;
+		}
+
+		#flattenBtn {
+			width: 52px;
+			height: 17px;
+			top: 534px;
+			left: 71px;
+			line-height: 17px;
+			font-size: 11px;
+			background-color: red;
+			border: 2px solid white;
+			border-radius: 12px;
+			text-shadow:1px 1px 5px #434746;
+		}
+		#flattenBtn:hover {
+			background-color: #ff4d4d;
+		}
+
+		#saveBtn {
+			width: 52px;
+			height: 17px;
+			top: 506px;
+			left: 7px;
+			line-height: 17px;
+			font-size: 11px;
+			background-color: #800080;
+			border: 2px solid white;
+			border-radius: 12px;
+			text-shadow:1px 1px 5px #434746;
+		}
+		#saveBtn:hover {
+			background-color: #b300b3;
+		} 
+
+		#checkBtn {
+			width: 52px;
+			height: 17px;
+			top: 534px;
+			left: 7px;
+			line-height: 17px;
+			font-size: 11px;
+			background-color: green;
+			border: 2px solid white;
+			border-radius: 12px;
+			text-shadow:1px 1px 5px #434746;
+			z-index: 13; /* Sit on top */
+		}
+		#checkBtn:hover {
+			background-color: #009900;
+		}
+
+		@keyframes pulse {
+		  0%, 100% {
+		  	transform: scale(.9);
+		    background-color: black;
+		  }
+		  50% {
+		  	transform: scale(1.3);
+		    background-color: green;
+		  }
+		}
+
+		#loadingMessage {
+			position: absolute;
+			top: 458px;
+			left: 28px;
+			animation: blinker 1s linear infinite;
+		}
+
+		@keyframes blinker {  
+		  50% { opacity: 0; }
+		}
+
+		#pos {
+			position: absolute;
+			top: 485px;
+			width: 104px;
+			left: 12px;
+		}
+
+	#songInfo {
+		position: absolute;
+		top: 318px;
+		left: 5px;
+		width:120px;
+		height: 120px;
+		background-color: #434746;
+		border-radius: 10px;
+		text-align: center;
+		font-size: 11px;
+		padding-top: 5px;
+	}
+
+	#arrowL {
+		position: absolute;
+		bottom: 4px;
+		left: 4px;
+	}
+
+	#arrowR {
+		position: absolute;
+		bottom: 4px;
+		right: 4px;
+	}
+
+	#remixSwapLbl {
+		position: absolute;
+		bottom: 12px;
+		left: 46px;
+		font-weight: bold;
+	} 
+
+	#noRemixesLbl {
+		position: absolute;
+		left: 12px;
+		top: 90px;
+		font-weight: bold;
+	} 
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 12; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    /* margin: 10% auto; */ /* 15% from the top and centered */
+    position: absolute;
+    top: 50px;
+    left: 0px;
+    right: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+		border: 1px solid #888;
+		max-width: 600px;
+    width: 80%; /* Could be more or less, depending on screen size */
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    text-align: center;
+}
+
+/* The Close Button */
+.modal-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+		position: absolute;
+		top: 20px;
+		right: 20px;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-sUp_close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.modal-sUpWithEmail_close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.modal-sUp_close:hover,
+.modal-sUp_close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* hides stuff */
+#blocker {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 12; /* Sit on top except for the check button which ius used to turn this modal off */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0); /* Black w/ opacity */
+}
+}
+
+
+#shareBtns {
+			text-align: center;
+		}
+
+#shareToFB {
+			display: inline-block;
+		}
+
+#shareToTwit {
+			display: inline-block;
+			height: 28px;
+    		vertical-align: bottom;
+		}
+
+#shareToReddit {
+	display: inline-block;
+	height: 24px;
+    vertical-align: bottom;
+}
+
+#upload_form_btn {
+	background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+#mp3_warning {
+	font-size: 10px;
+}
+
+#smallIt {
+	font-size: 11px;
+	font-style: italic;
+}
+
+#termsOfUse {
+	border-width: 1px;
+	border-style: solid;
+	padding: 5px;
+	background-color: white;
+	color: black;
+	font-size: 11px;
+	text-align: left;
+	height: 150px;
+	overflow: scroll;
+}
+
+#copyright {
+	text-align: center;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	font-size: 12px; 
+	color: white;
+	line-height: 34px;
+}
+
+#bottom_menu {
+	position: absolute;
+	/*top: 618px;*/
+	color: white;
+	font-size: 11px;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0px;
+	right: 0px;
+	cursor: default;
+}
+
+#stemInfo:hover, #downloadStems:hover {
+	color: #fed136;
+}
+
+#shareIt {
+	font-size: 11px;
+}
+
+.forTeacherBtn {
+	display: none;
+	background-color: #009900; /* green */
+    border: none;
+    color: white;
+   	width: 80px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+#TZHelpVid {
+	margin: 0 auto;
+	max-width: 400px;
+}
+
+#teachingSessions {
+	text-align: left;
+	position: absolute;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0px;
+	right: 0px;
+	top: 300px;
+	max-width: 900px;
+	min-height: 300px;
+	height: auto;
+	color: white;
+	background: rgba(0, 0, 0, 0.5);
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	padding: 10px;
+	font-size: 14px;
+	/*overflow-y: scroll;*/
+}
+
+.teachingSessionsList {
+  padding: 0;
+  margin: 0;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 10px;
+  overflow-x: hidden;
+}
+.teachingSessionsList a{
+  color: black;
+}
+.teachingSessionsList a:hover{
+  color: orange;
+}
+
+.teachingSessionsList li {
+  border: 2px solid black;/* #ddd; */
+  background-color: #f6f6f6;
+  padding: 12px;
+  display: block;
+  color: black;
+  font-size: 12px;
+}
+
+.teachButtons {
+	float: right;
+}
+
+.analyticsBtn {
+	background-color: #009900; /* green */
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.analyticsBtn:hover {
+	background-color: #5fb962; /* green */
+}
+
+.deleteAnalyticsBtn {
+	background-color: red; /* red */
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.deleteAnalyticsBtn:hover {
+	background-color: #ff4d4d; /* red */
+}
+
+.copyURLBtn {
+	background-color: purple; 
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+} 
+
+.copyURLBtn:hover {
+	background-color: #9932CC; 
+}
+
+#materials { /* used in learning zone */
+	color: white;
+	text-align: left;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+#materials a { 
+	color:#6699ff; 
+	text-decoration: underline;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+
+#aboutText {
+	text-align: left;
+	color: white;
+	padding: 10px;
+	font-size: 14px;
+}
+
+#myModal_enterName { /* used in training mixer */
+	display: block;
+}
+
+#displayName { /* used in training mixer */
+	color: white;
+	right: 20px;
+	position: absolute;
+	top: 5px;
+	font-weight: bold;
+	font-size: 14px;
+}
+
+#timerLbl {
+	position: absolute;
+	top: 473px;
+	left: 100px;
+	font-size: 10px;
+}
+
+#revSelect {
+	position: absolute;
+	top: 222px;
+	left: 23px;
+}
+
+

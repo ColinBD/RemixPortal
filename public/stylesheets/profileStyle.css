@@ -1,0 +1,237 @@
+#container {
+	position: relative;
+	 width: 1022px;
+	 height: auto;
+	 background-color: purple;
+	 margin-left: auto;
+	 margin-right: auto;
+	 margin-top: 44px;
+}
+
+#container a {
+	color: black;
+	cursor: pointer;
+}
+
+#container a:hover{
+	color: #fed136;
+}
+
+#yourRemixes {
+	background: rgba(0, 0, 0, 0.5);
+	color: white;
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 10px;
+	float: left;
+	width: 420px;
+	max-height: 400px;
+	overflow-y: scroll;
+}
+
+#yourTracks {
+	background: rgba(0, 0, 0, 0.5);
+	color: white;
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 10px;
+	float: left;
+	width: 420px;
+	max-height: 400px;
+	overflow-y: scroll;
+}
+
+#yourDetails {
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 10px;
+	padding: 10px;
+	float: right;
+	width: 540px;
+}
+
+#createPageLink {
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 10px;
+	padding: 10px;
+	float: right;
+	width: 540px;
+}
+
+#yourArtists {
+	background: rgba(0, 0, 0, 0.5);
+	color: white;
+	border-style: solid;
+	border-color: #323232;
+	border-radius: 10px;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	padding: 10px;
+	float: right;
+	width: 540px;
+}
+
+#yourArtists ul{
+	font-weight: bold;
+	font-size: 14px;
+}
+
+#theirTracks {
+	border-style: solid;
+	border-color: yellow;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	width: 480px;
+}
+
+.remixedSongList {
+  padding: 0;
+  margin: 0;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size: 10px;
+  overflow-x: hidden;
+}
+
+.remixedSongList li {
+  border: 2px solid black;/* #ddd; */
+  background-color: #f6f6f6;
+  padding: 12px;
+  display: block;
+}
+
+.remixedSongList a {
+  font-size: 11px;
+}
+
+.uploadBtn {
+    background-color: #0040ff; /* Blue */
+    border: none;
+    color: white;
+   	width: 110px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.uploadBtn:hover {
+    background-color: #3366ff; 
+}
+
+.modifyBtn {
+    background-color: #e69500; 
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.modifyBtn:hover {
+    background-color: #ffaf1a; 
+}
+
+.deleteBtn {
+    background-color: red; 
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.deleteBtn:hover {
+    background-color: #ff4d4d; 
+}
+
+#btns {
+	float:right;
+}
+
+#createArtistPage {
+	float: right;
+	background-color: #009900; /* green */
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+#createArtistPage:hover {
+	background-color: #5fb962; 
+}
+
+#EditProfPageBtn {
+	float: right;
+	background-color: #009900; 
+    border: none;
+    color: white;
+   	width: 100px;
+   	height: 22px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+
+#EditProfPageBtn:hover {
+	background-color: #5fb962; 
+}
+
+#yourInfo {
+	font-size: 11px;
+}
+
+/*.submitBtn {
+	background-color: #4CAF50; 
+    border: none;
+    color: white;
+   	width: 110px;
+   	height: 30px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+}*/
+
+#modal_editArtist_content {
+	top: 10px !important;
+}

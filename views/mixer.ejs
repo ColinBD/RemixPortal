@@ -1,0 +1,2711 @@
+<!-- to change...
+1) Pause and replay broke in Chrome. The fix required the reverbNode buffer code being changed
+	a) In the play function we add the lines: //recreate master channel now so it's ready to handle the new connections; C[8].reverbNode.buffer = null; C[8] = new masterC(); C[8].reverbNode.buffer = IRs[M[8].revType * 5];
+	b) In the function clickedRevChange all we need in the 'if playing' bit is a pause() and play() to trigger the play code encompassing the above lines to run
+	c) I removed the set reverb from funciton set web audio params
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+    <!-- <script src='https://cdn.jsdelivr.net/jquery.roundslider/1.3/roundslider.min.js'></script> -->
+    <script src="/resources/nexusUI.js"></script>
+    <script type="text/javascript" src="/resources/ejs_production.js"></script>
+    <script src="/resources/jquery.form.min.js"></script>
+    <script src="/resources/jquery.rateyo.min.js"></script>
+
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/jquery.roundslider/1.3/roundslider.min.css"> -->
+    <link rel="stylesheet" type="text/css" href="/stylesheets/mixerStyle.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/stylesheets/commentsStyle.css"
+    />
+    <link rel="stylesheet" href="/stylesheets/jquery.rateyo.min.css" />
+    <!-- star ratings -->
+
+    <!--twitter sharing script -->
+    <script>
+      window.twttr = (function(d, s, id) {
+        var js,
+          fjs = d.getElementsByTagName(s)[0],
+          t = window.twttr || {};
+        if (d.getElementById(id)) return t;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "https://platform.twitter.com/widgets.js";
+        fjs.parentNode.insertBefore(js, fjs);
+        t._e = [];
+        t.ready = function(f) {
+          t._e.push(f);
+        };
+        return t;
+      })(document, "script", "twitter-wjs");
+    </script>
+
+    <!-- FB meta stuff -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Remix Portal" />
+    <!-- this dictates what image facebook uses when sharing -->
+    <meta
+      property="og:description"
+      content="Letting you listen to, take apart, remix and share music from the comfort of your Google Chrome web browser"
+    />
+    <meta
+      property="og:image"
+      content="http://remixportal.co.uk/images/mixer4.png"
+    />
+    <!-- this dictates what image facebook uses when sharing -->
+  </head>
+
+  <body>
+    <!-- FACEBOOK share javascript sdk -->
+    <div id="fb-root"></div>
+
+    <!-- topMenu -->
+    <%- include partials/topMenu.ejs %>
+
+    <!-- post-save Modal -->
+    <div id="myModal_share" class="modal">
+      <!-- Modal content -->
+      <div id="modal_share_content" class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Your remix has been saved</h2>
+        <p>Care to share?</p>
+        <div id="shareIt">copy this URL or hit a button below:</div>
+        <br />
+        <div id="shareBtns">
+          <div
+            id="shareToFB"
+            class="fb-share-button"
+            data-href="http://remixportal.co.uk/mixer/1/2"
+            data-layout="button"
+            data-size="large"
+            data-mobile-iframe="false"
+          >
+            <a
+              class="fb-xfbml-parse-ignore"
+              target="_blank"
+              href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fremixportal.co.uk%2Fmixer%2F2%2F3&amp;src=sdkpreparse"
+              >Share</a
+            >
+          </div>
+          <div id="shareToTwit"></div>
+          <div id="shareToReddit"></div>
+          <br /><br />
+        </div>
+      </div>
+    </div>
+
+    <!-- upload Modal -->
+    <div id="myModal_upload" class="modal">
+      <!-- Modal content -->
+      <div id="modal_upload_content" class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Upload a stem</h2>
+        <!-- form items to gather the data for the upload -->
+        <form
+          id="uploadForm"
+          enctype="multipart/form-data"
+          action="/uploadStem"
+          method="POST"
+          enctype="multipart/form-data"
+          onsubmit="return checkform()"
+        >
+          <!-- select the file -->
+          Select the stem to upload
+          <span id="mp3_warning"
+            >(currently we only support 128kbps mp3 files - but you can easily
+            convert files to this format in iTunes)</span
+          ><br />
+          <input type="file" name="theMP3" accept=".mp3" /><br /><br />
+          <!-- label the stem -->
+          Enter a name for this stem:
+          <input
+            type="text"
+            name="stem_label"
+            id="stem_label_id"
+            maxlength="12"
+            size="12"
+          /><br /><br />
+          <!-- copyright checkbox -->
+          Do you have permission from the copyright holder to upload this stem?
+          <INPUT
+            type="radio"
+            NAME="copyright_check"
+            VALUE="y"
+            id="radioYes"
+          />Yes
+          <INPUT
+            type="radio"
+            NAME="copyright_check"
+            VALUE="n"
+            id="radioNo"
+            checked
+          />No<br /><br />
+          <input type="hidden" value="foo" name="trackNumber" />
+          <input type="hidden" value="0" name="songId" />
+          <input type="hidden" value="foo" name="author" />
+          <input type="hidden" value="foo" name="UID" />
+          <!-- finally a submit button -->
+          <input type="submit" value="Upload Stem" name="submit" />
+          <span id="status"></span>
+          <!-- TO DO: select a license section -->
+        </form>
+      </div>
+    </div>
+
+    <!-- Create a mixer div to be dynamically filled with content from the database -->
+    <!-- <div id='wrapper'> -->
+    <div id="Container">
+      <div id="mixerWrapper">
+        <div id="mixer"></div>
+      </div>
+      <!-- comments section -->
+      <%- include partials/commentsSection.ejs %>
+    </div>
+    <!-- bottom menu -->
+    <div id="bottom_menu">
+      <ul id="bottomUL">
+        <li id="stemInfo">view stem and artist info</li>
+        <li id="downloadStems">download stems</li>
+      </ul>
+    </div>
+
+    <!-- blocker -->
+    <div id="blocker"></div>
+
+    <!--********* SCRIPTS ***************-->
+    <!-- check the browser - it must be Chrome -->
+    <script type="text/javascript" src="/resources/browserCheck.js"></script>
+
+    <!-- main script -->
+    <script type="text/javascript">
+      	//add the 'share remix' item to the main menu
+      	// $('<a />', {
+      	// 	text: "SHARE REMIX",
+      	// 	click: function() {pushSavedState ();}
+      	// }).wrap('<li />').parent().appendTo('#mainMenu');
+
+
+
+      	//check we actually have a song to work with - if not divert to error page
+      	if (<%=theData.length%> == 0) {
+      		window.location.href = "/notfound";
+      	};
+
+      /*************** INITIAL VARIABLES/OBJECTS SET-UP ***************************************/
+
+      	var playing = false; //play state
+      	var numChannels = 0;
+      	var tracksLoaded = 0; //helps us set-up the environment
+      	var AudioContext = window.AudioContext || window.webkitAudioContext;
+      	var context = new AudioContext();
+      	var timer = null; //use this to keep track of playback position
+      	var thePos = 0; //used to locate position in the song
+      	var initTime = 0; //stores context current time when play is pressed
+      	var songLength = 0; //length of the song in seconds
+      	var selectedStems = [0,0,0,0,0,0,0,0]; //this list will store the number associated with each chosen stem e.g. selectedStems[2] = 0 means track3 uses original stem
+      	var waiting = false;
+      	var loggedIn = false;
+      	var userName = 'guest';
+      	var userID = '1234';
+      	var songID = <%=theSong%>;
+      	var mixID = <%=theMixID%>;
+      	var mixIDset = [];
+      	var mixLoopPos = 0; //stores the position in the array of mix id's
+      	var songTitle = '<%=theData[0].songTitle%>';
+      	var origArtist = '<%=theData[0].artist%>';
+      	var theMix = {}; //this will store the JSON holding the remix we pulled from the database
+      	var uploadPath = '<%= theData[0].uploadPath %>';
+      	var checking = false; //this will be true when user is comparing their remix with the original remix
+      	var ecoView = false; //when its true we hide the meters to save CPU cycles
+      	var downloadPath = '<%= theDownloadPath[0].downloadPath %>';
+      	var mobile = true;
+      	var theSlider = '';
+      	var currentChan = '0';
+      	var settingInterface = false;
+      	var dragging = false; //used whilst a dial is being changed
+      	var number = 0;
+      	var initY = 0;
+      	var scaler = 1;
+      	var dialMin = 0;
+      	var dialMax = 99;
+      	var currentNum = 0;
+      	const dialHeight = 40;
+      	var currentPicId = 'EQHGdialPic0';
+      	var currentDial = '';
+
+      	//we need to work out how many channels to build in our mixer
+      	//we do this by searching for the upper track number
+      	<% for(i=0; i<theData.length; i++) {%>
+      			if (<%= theData[i].track %> > numChannels) {
+      				numChannels = <%= theData[i].track %>
+      			};
+      	<% } %>
+
+      	tracksLoaded = numChannels;
+
+      	//sort and store the URLs
+      	var trackURLs = [
+      		[],[],[],[],[],[],[],[]
+      	];
+      	<% for(i=0; i<theData.length; i++) {%>
+      			if (<%= theData[i].Approved %> == 1) { //check that the current sample has been approved before loading it
+      				//we want item zero to be the original track
+      				if (<%= theData[i].origTrack %> == 1) {
+      					trackURLs[<%= theData[i].track %> - 1][0] = '<%= theData[i].path %>';
+      				} else { //this next bit is just failsafe as actually the indexing in the database should bring the original items out first
+      					trackURLs[<%= theData[i].track %> - 1].push('<%= theData[i].path %>'); //append the URL to the row that matches the channel number
+      					if (trackURLs[<%= theData[i].track %> - 1].length == 1) {
+      						trackURLs[<%= theData[i].track %> - 1].push('<%= theData[i].path %>'); //push again so the [0] index does not get overwritten when we find the original
+      					};
+      				};
+      			};
+      	<% } %>
+
+      	//sort and store the labels exactly as we did for the URLs
+      	var trackLabels = [
+      		[],[],[],[],[],[],[],[]
+      	];
+      	<% for(i=0; i<theData.length; i++) {%>
+      			if (<%= theData[i].Approved %> == 1) { //check that the current sample has been approved before loading it
+      				//we want item zero to be the original track
+      				if (<%= theData[i].origTrack %> == 1) {
+      					trackLabels[<%= theData[i].track %> - 1][0] = '<%= theData[i].label %>';
+      				} else { //this next bit is just failsafe as actually the indexing in the database should bring the original items out first
+      					trackLabels[<%= theData[i].track %> - 1].push('<%= theData[i].label %>'); //append the URL to the row that matches the channel number
+      					if (trackLabels[<%= theData[i].track %> - 1].length == 1) {
+      						trackLabels[<%= theData[i].track %> - 1].push('<%= theData[i].label %>'); //push again so the [0] index does not get overwritten when we find the original
+      					};
+      				};
+      			};
+      	<% } %>
+
+      	//create the channel object to store the settings our mixer objects use
+      	function channel (type) {
+      		this.mySoundBuffer = null; //create memory location for audio file to be loaded into
+      		this.sourceNode = context.createBufferSource(); //create node that plays an audio buffer
+      		this.distortionNode = context.createWaveShaper();//create distortion node
+      		this.distortionCurve = makeDistortionCurve(0); //create an initial distortion curve used to crunch the sound
+      		this.distTrimNode = context.createGain();//create trim node to moderate the increase in volume as the distortion is tuned up
+      		this.HFNode = context.createBiquadFilter();//create high frequency filter EQ node
+      		this.HMFNode = context.createBiquadFilter();//create high mid frequency filter EQ node
+      		this.LMFNode = context.createBiquadFilter();//create low mid frequency filter EQ node
+      		this.LFNode = context.createBiquadFilter();//create low frequency filter EQ node
+      		this.compNode = context.createDynamicsCompressor();//create compressor node
+      		this.compMakeupNode = context.createGain();//create compTrim node to moderate the compressors auto gain feature
+      		this.volNode = context.createGain(); //create volume fader
+      		this.muteNode = context.createGain(); //create gainNode which we keep at 1 except for when a track is muted then we set it to 0
+      		this.panNode = context.createStereoPanner(); //create pan node
+      		this.reverbSendNode = context.createGain(); //create reverb send gain control
+      		this.delaySendNode = context.createGain(); //create delay send gain control
+
+      	};
+
+      	function masterC (type) {
+      		this.reverbNode = context.createConvolver();
+      		this.reverbLPNode = context.createBiquadFilter();//create low pass filter for use with reverb
+      		this.reverbHPNode = context.createBiquadFilter();//create high pass filter for use with reverb
+      		this.delayNode = context.createDelay();
+      		this.delayFBNode = context.createGain();
+      		this.delayLPNode = context.createBiquadFilter();//create low pass filter for use with delay
+      		this.delayHPNode = context.createBiquadFilter();//create high pass filter for use with delay
+      	};
+
+      	//create the list of channels - our mixer has 8 channels hence we use 8 items in the list
+      	var C = [
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new channel(),
+      		new masterC()
+      	];
+
+      	var IRs = [
+      		null,
+      		null,
+      		null,
+      		null,
+      		null,
+      		null
+      	];
+
+      	//create the channelSettings object to store the interface settings which we will map to our channel objects.
+      		//We need this because when the audio is stopped and restarted the web audio objects may return to their default values
+      		//Everything in range 0..1 thus it will need converting before going to the channel objects
+      	function mixerSettings (type) {
+      		this.stem = "default";
+      		this.volume = 0.7;
+      		this.mute = "false";
+      		this.solo = false;
+
+      		//equaliser settings
+      		this.eqActive = true; //EQ (biquad filter) settings
+      		this.HG = 0.5; //high gain
+      		this.HF = 0.5; //high frequency
+      		this.HQ = 0.8; //high Q  //range -inf..inf with default 1
+      		this.HType = "highshelf";//"peaking"; //was lowpass
+      		this.HMF = 0.5; //peaking   //frequency in HZ, default is 350Hz (but I should make this 2000)
+      		this.HMG = 0.5; //peaking (no boost or cut to begin with) -20..20 range
+      		this.HMQ = 0.8; //peaking  //range -inf..inf with default 1
+      		this.HMType = "peaking";
+      		this.LMF = 0.5; //peaking  //frequency in HZ, default is 350Hz (but I should make this 200)
+      		this.LMG = 0.5; //peaking (no boost or cut to begin with) -20..20 range
+      		this.LMQ = 0.8; //peaking  //range -inf..inf with default 1
+      		this.LMType = "peaking";
+      		this.LType = "lowshelf";//"peaking"; //was highpass
+      		this.LG = 0.5; //low gain
+      		this.LF = 0.5; //low freq
+      		this.LQ = 0.8; //low Q  //range -inf..inf with default 1
+
+      		//compressor settings
+      		this.compActive = true;
+      		this.ratio = 0.6; //range 1..20 with default 12
+      		this.threshold = 0; //range -100..0 with default -24 (but I want it to be 0 thus no compression)
+      		this.knee = 0.75; //range 0..40 with default 30
+      		this.attack = 0.003; //range 0..1 with default 0.003
+      		this.release = 0.25; //range 0..1 with default 0.25
+
+      		this.compMakeup = 0; //used to create a make-up gain control
+
+      		this.driveActive = true;
+      		this.drive = 0; //distortion (waveshaper) settings
+      		this.driveTrim = 1; //waveshaper trim amount for gain node
+      		this.pan = 0.5; //pan (stereoPanner) settings
+      		this.reverbActive = true;
+      		this.reverb = 0; //reverb (convolver) send amount
+      		this.delayActive = true;
+      		this.delay = 0; //delay send amount
+      	};
+
+      	function mixerSettingsMaster(type) {
+      		//reverb type
+      		this.revType = 0.6; //which is hall
+      		this.reverbHP = 0;//reverb HP
+      		this.reverbLP = 1; //reverb LP
+      		this.delayT = 0.5; //delay time between 0..1 seconds
+      		this.delayFB = 0; //delay feedback
+      		this.delayHP = 0; //delay HP
+      		this.delayLP = 1; //delay LP
+      		//playback speed
+      		this.speed = 1;
+      	};
+
+      	var M = [
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettings(),
+      		new mixerSettingsMaster()
+      	];
+
+      	var userMix = [];
+
+      /*************** LOAD THE AUDIO FILES ***************************************************/
+
+      	//TO DO: we will need to change this when we are loading other users mixes because they may have changed away from the default sample
+      	//load the sample by calling the load sound function
+      		for (var i = 0; i < numChannels; i++) {
+      			//loadSound(trackURLs[i][0], i ); //format is (URL, channel)
+      			//also collect the stem number
+      			selectedStems[i] = -1;
+      		};
+
+      	//load the impulse response audio files
+      	for (var i = 0; i<6; i++) {
+      		if (i == 0) {
+      			var url = '/resources/impulseResponses/Ambience.wav';
+      		} else if (i == 1) {
+      			var url = '/resources/impulseResponses/Room.wav';
+      		} else if (i == 2) {
+      			var url = '/resources/impulseResponses/Chamber.wav';
+      		} else if (i == 3) {
+      			var url = '/resources/impulseResponses/Hall.wav';
+      		} else if (i == 4) {
+      			var url = '/resources/impulseResponses/Chorus.wav';
+      		} else if (i == 5) {
+      			var url = '/resources/impulseResponses/SciFi.wav';
+      		};
+      		loadSoundIR(url, i);
+      	};
+
+      /*************** DRAW THE MIXER *******************************************************/
+      	var channelHTML = "";
+
+      		//loop through each row within the song data
+      	for (var i=0; i<numChannels; i++) {
+      		//first lets prepare the text for the selection box
+      		var selectTxt = "";
+      		for (var k=0;k<trackLabels[i].length;k++){
+      			//check if this is the selected item
+      			if (k == selectedStems[i]) {
+      				selectTxt += "<option value='" + k + "' selected='selected'>" + trackLabels[i][k] + "</option>";
+      			} else { //it's not the selected item
+      				selectTxt += "<option value='" + k + "'>" + trackLabels[i][k] + "</option>";
+      			};
+      		};
+
+      		//create a channel div
+      		document.getElementById('mixer').innerHTML += "<div class='channel' id='channel" + i + "'></div>";
+      		//create the HTML for the channel
+      		channelHTML = "";
+      		//channelHTML += "<div id='BGi_image" + i + "' style='position: absolute; left: 0px; '><img draggable='false' style='pointer-events: none;' src='/images/RPFF_channel_BG2.png'></div>";
+      			//sample selection
+      		//channelHTML += "<div id='sampleBorder" + i + "' class='sampleBorder border'></div>";
+      		//channelHTML += "<div id='sampSelect" + i + "' data-channel='" + i + "' class='sampSelect'><select name='sampleSelect' id='sampleSelect" + i + "' onChange='changeStem(this.value, " + i + ")' >";
+      		//channelHTML += selectTxt;
+      		//channelHTML += "</select></div>";
+      			//EQ section
+      		channelHTML += "<div id='eqBorder" + i + "' class='eqBorder border'></div>";
+      		channelHTML += "<div id='dialEQHG" + i + "' data-channel='" + i + "' data-imgID='EQHGdialPic" + i + "' class='dial EQHG' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 25px; top: 16px;'><img id='EQHGdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_red_40.png'></div>";
+      		//HF - NOTE: I removed all the class names from these decalrations as it was sending the jquery roundsliders mad!
+      		channelHTML += "<div id='dialEQHF" + i + "' data-channel='" + i + "' data-imgID='EQHFdialPic" + i + "' class='dial EQHF' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 67px; top: 16px;'><img id='EQHFdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_red_40.png'></div>";
+      		//HMG
+      		channelHTML += "<div id='dialEQHMG" + i + "' data-channel='" + i + "' data-imgID='EQHMGdialPic" + i + "' class='dial EQHMG' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 5px; top: 61px;'><img id='EQHMGdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_green_40.png'></div>";
+      		//HMF
+      		channelHTML += "<div id='dialEQHMF" + i + "' data-channel='" + i + "' data-imgID='EQHMFdialPic" + i + "' class='dial EQHMF' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 46px; top: 61px;'><img id='EQHMFdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_green_40.png'></div>";
+      		//HMQ
+      		channelHTML += "<div id='dialEQHMQ" + i + "' data-channel='" + i + "' data-imgID='EQHMQdialPic" + i + "' class='dial EQHMQ' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 61px;'><img id='EQHMQdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_green_40.png'></div>";
+      		//LMG
+      		channelHTML += "<div id='dialEQLMG" + i + "' data-channel='" + i + "' data-imgID='EQLMGdialPic" + i + "' class='dial EQLMG' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 5px; top: 106px;'><img id='EQLMGdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_blue_40.png'></div>";
+      		//LMF
+      		channelHTML += "<div id='dialEQLMF" + i + "' data-channel='" + i + "' data-imgID='EQLMFdialPic" + i + "' class='dial EQLMF' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 46px; top: 106px;'><img id='EQLMFdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_blue_40.png'></div>";
+      		//LMQ
+      		channelHTML += "<div id='dialEQLMQ" + i + "' data-channel='" + i + "' data-imgID='EQLMQdialPic" + i + "' class='dial EQLMQ' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 106px;'><img id='EQLMQdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_blue_40.png'></div>";
+      		//LG
+      		channelHTML += "<div id='dialEQLG" + i + "' data-channel='" + i + "' data-imgID='EQLGdialPic" + i + "' class='dial EQLG' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 25px; top: 155px;'><img id='EQLGdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_black_40.png'></div>";
+      		//LF
+      		channelHTML += "<div id='dialEQLF" + i + "' data-channel='" + i + "' data-imgID='EQLFdialPic" + i + "' class='dial EQLF' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 67px; top: 155px;'><img id='EQLFdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_black_40.png'></div>";
+
+      			//comp section
+      		channelHTML += "<div id='compBorder" + i + "' class='compBorder border'></div>";
+      		//threshold
+      		channelHTML += "<div id='dialCompThresh" + i + "' data-channel='" + i + "' data-imgID='CompThreshdialPic" + i + "' class='dial compThresh' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 5px; top: 238px;'><img id='CompThreshdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+      		//ratio
+      		channelHTML += "<div id='dialCompRatio" + i + "' data-channel='" + i + "' data-imgID='CompRatiodialPic" + i + "' class='dial compRatio' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 46px; top: 238px;'><img id='CompRatiodialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+      		//attack
+      		channelHTML += "<div id='dialCompAttack" + i + "' data-channel='" + i + "' data-imgID='CompAttackdialPic" + i + "' class='dial compAttack' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 5px; top: 283px;'><img id='CompAttackdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+      		//release
+      		channelHTML += "<div id='dialCompRelease" + i + "' data-channel='" + i + "' data-imgID='CompReleasedialPic" + i + "' class='dial compRelease' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 46px; top: 283px;'><img id='CompReleasedialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+      		//knee
+      		channelHTML += "<div id='dialCompKnee" + i + "' data-channel='" + i + "' data-imgID='CompKneedialPic" + i + "' class='dial compKnee' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 283px;'><img id='CompKneedialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+      		//make-up
+      		channelHTML += "<div id='dialCompMakeup" + i + "' data-channel='" + i + "' data-imgID='CompMakeupdialPic" + i + "' class='dial compMakeup' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 238px;'><img id='CompMakeupdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_light_grey_40.png'></div>";
+
+      			//pan
+      		channelHTML += "<div id='panBorder" + i + "' class='panBorder border'></div>";
+      		channelHTML += "<div id='dialPan" + i + "' data-channel='" + i + "' data-imgID='PandialPic" + i + "' class='dial pan' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 361px;'><img id='PandialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_dark_grey_40.png'></div>";
+
+      			//drive
+      		channelHTML += "<div id='driveBorder" + i + "' class='driveBorder border'></div>";
+      		channelHTML += "<div id='dialDrive" + i + "' data-imgID='DrivedialPic" + i + "' data-channel='" + i + "' class='dial drive' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 407px;'><img id='DrivedialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_dark_grey_40.png'></div>";
+
+      			//reverb
+      		channelHTML += "<div id='reverbBorder" + i + "' class='reverbBorder border'></div>";
+      		channelHTML += "<div id='dialReverb" + i + "' data-channel='" + i + "' data-imgID='ReverbdialPic" + i + "' class='dial reverb' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 455px;'><img id='ReverbdialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_dark_grey_40.png'></div>";
+
+      			//delay
+      		channelHTML += "<div id='delayBorder" + i + "' class='delayBorder border'></div>";
+      		channelHTML += "<div id='dialDelay" + i + "' data-channel='" + i + "' data-imgID='DelaydialPic" + i + "' class='dial delay' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 88px; top: 499px;'><img id='DelaydialPic" + i + "' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_dark_grey_40.png'></div>";
+
+      			//mute button
+      		channelHTML += "<div id='muteBorder" + i + "' class='muteBorder border'></div>";
+      		channelHTML +=  "<div id='btnMute" + i + "' data-channel='" + i + "' class='muteBtn'>M</div>";
+      			//solo button
+      		channelHTML +=  "<div id='btnSolo" + i + "' data-channel='" + i + "' class='soloBtn'>S</div>";
+      			//volume slider
+      		channelHTML += "<div id='faderBorder" + i + "' class='faderBorder border'></div>";
+      		channelHTML += "<input id='volFader" + i + "' type='range'  data-channel='" + i + "' class='volFader' min='0' max='1' value='0.7' step='0.01' oninput=changeVol(this) onchange=pushVolChange(this) />";
+      			//the volume meter
+      		channelHTML += '<canvas nx="meter" id="meter' + i + '" class="dbMeter" height="150" width="11"></canvas>';
+      			//label the channel
+      		channelHTML += "<div id='label" + i + "' class='channellbl'>" + trackLabels[i][0] + "</div>";
+      			//label all components
+      		channelHTML += "<div class='controlLbls EQHGlbl' id='lbl" + i + "' style='left:25px'>high gain</div>"; //high gain label
+      		channelHTML += "<div class='controlLbls EQHFlbl' id='lbl" + i + "'>high freq</div>"; //high frequency label
+
+      		channelHTML += "<div class='controlLbls EQHMGlbl' id='lbl" + i + "'>HM gain</div>"; //high-mid gain label
+      		channelHTML += "<div class='controlLbls EQHMFlbl' id='lbl" + i + "'>HM freq</div>"; //high-mid frequency label
+      		channelHTML += "<div class='controlLbls EQHMQlbl' id='lbl" + i + "'>HM Q</div>"; //high-mid bandwidth label
+      		channelHTML += "<div class='controlLbls EQLMGlbl' id='lbl" + i + "'>LM gain</div>"; //low-mid gain label
+      		channelHTML += "<div class='controlLbls EQLMFlbl' id='lbl" + i + "'>LM freq</div>"; //low-mid frequency label
+      		channelHTML += "<div class='controlLbls EQLMQlbl' id='lbl" + i + "'>LM Q</div>"; //low-mid bandwidth label
+      		channelHTML += "<div class='controlLbls EQLGlbl' id='lbl" + i + "' style='left:27px'>low gain</div>"; //low gain label
+      		channelHTML += "<div class='controlLbls EQLFlbl' id='lbl" + i + "'>low freq</div>"; //low frequency label
+
+      			//comp labels
+      		channelHTML += "<div class='controlLbls cThreshlbl' id='lbl" + i + "'>threshold</div>"; //comp thresh label
+      		channelHTML += "<div class='controlLbls cRatiolbl' id='lbl" + i + "'>ratio</div>"; //comp ratio label
+      		channelHTML += "<div class='controlLbls cMUlbl' id='lbl" + i + "'>make-up</div>"; //comp make-up label
+      		channelHTML += "<div class='controlLbls cAttacklbl' id='lbl" + i + "'>attack</div>"; //comp attack label
+      		channelHTML += "<div class='controlLbls cReleaselbl' id='lbl" + i + "'>release</div>"; //comp release label
+      		channelHTML += "<div class='controlLbls cKneelbl' id='lbl" + i + "'>knee</div>"; //comp knee label
+      			//other lables
+      		channelHTML += "<div class='controlLbls panlbl' id='lbl" + i + "'>pan</div>"; //pan label
+      		channelHTML += "<div class='controlLbls drivelbl' id='lbl" + i + "'>drive</div>"; //drive label
+      		channelHTML += "<div class='controlLbls reverblbl' id='lbl" + i + "'>reverb</div>"; //reverb label
+      		channelHTML += "<div class='controlLbls delaylbl' id='lbl" + i + "'>delay</div>"; //delay label
+      		channelHTML += "<div class='equalizerlbl' id='lbl" + i + "'>EQUALIZER</div>"; //EQUALIZERS label
+      		channelHTML += "<div class='compressorlbl' id='lbl" + i + "'>COMPRESSOR</div>"; //COMPRESSOR label
+      			//? and info button divs
+      		/*
+      		channelHTML += "<div class='Q EQQ' data-channel='" + i + "' id='btnEQQ" + i + "'>?</div>"; //EQ '?' div as button
+      		channelHTML += "<div class='Q compQ' data-channel='" + i + "' id='btnCompQ" + i + "'>?</div>"; //comp '?' div as button
+      		channelHTML += "<div class='Q otherQ' data-channel='" + i + "' id='btnOtherQ" + i + "'>?</div>"; //other '?' div as button
+      			//sample upload button
+      		channelHTML += "<div class='upload' data-channel='" + i + "' id='upload" + i + "'>u</div>"; //'u' div as sample upload button
+      		*/
+      		//write the HTML to the channel div
+      		document.getElementById('channel' + i).innerHTML += channelHTML;
+
+      	};
+
+      	//create a div for the master channel
+      	document.getElementById('mixer').innerHTML += "<div class='mChan' id='masterChannel'></div>";
+      	//clear the master channel variable
+      	channelHTML = "";
+      	//prepare the master channel
+      		//insert the dials
+      	//channelHTML += "<div id='BGi_image' style='position: absolute; left: 0px; '><img draggable='false' style='pointer-events: none;' src='/images/RPFF_Mchannel_BG.png'></div>";
+      	channelHTML += "<div id='dialPlaySpd' class='dial playSpd' data-channel='8' data-imgID='PlaySpddialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 46px; top: 20px;'><img id='PlaySpddialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	channelHTML += "<select id='revSelect' onChange='clickedRevChange(this.value)'><option value='Ambience'>Ambience</option><option value='Room'>Room</option><option value='Chamber'>Chamber</option><option value='Hall'>Hall</option><option value='Chorus'>Chorus</option><option value='SciFi'>SciFi</option></select>";
+      	//rev HPF
+      	channelHTML += "<div id='dialrevHPF' class='dial revHPF' data-channel='8' data-imgID='revHPFdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 22px; top: 252px;'><img id='revHPFdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	//rev LPF
+      	channelHTML += "<div id='dialrevLPF' class='dial revLPF' data-channel='8' data-imgID='revLPFdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 70px; top: 252px;'><img id='revLPFdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	//delay time
+      	channelHTML += "<div id='dialDlayT' class='dial DlayT' data-channel='8' data-imgID='DlayTdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 22px; top: 92px;'><img id='DlayTdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	//delay FB
+      	channelHTML += "<div id='dialDlayFB' class='dial DlayFB' data-channel='8' data-imgID='DlayFBdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 70px; top: 92px;'><img id='DlayFBdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	//delay HPF
+      	channelHTML += "<div id='dialDlayHPF' class='dial DlayHPF' data-channel='8' data-imgID='DlayHPFdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 22px; top: 139px;'><img id='DlayHPFdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+      	//delay LPF
+      	channelHTML += "<div id='dialDlayLPF' class='dial DlayLPF' data-channel='8' data-imgID='DlayLPFdialPic' style='overflow: hidden; height: 45px; user-select: none; position: absolute; left: 70px; top: 139px;'><img id='DlayLPFdialPic' draggable='false' width='40px' style='pointer-events: none; transform: translateY(0px);' src='/images/dials/ssl_yellow_40.png'></div>";
+
+      		//insert the labels
+      	channelHTML += "<div id='Dlbl' class='Mlbl'>DELAY SETTINGS</div>";
+      	channelHTML += "<div id='Rlbl' class='Mlbl'>REVERB SETTING</div>";
+      	channelHTML += "<div id='PSpd' class='controlLbls'>tempo</div>";
+      	channelHTML += "<div id='delayTlbl' class='controlLbls'>delay time</div>";
+      	channelHTML += "<div id='delayFBlbl' class='controlLbls'>feedback</div>";
+      	channelHTML += "<div id='delayHPFlbl' class='controlLbls'>high pass filter</div>";
+      	channelHTML += "<div id='delayLPFlbl' class='controlLbls'>low pass filter</div>";
+      	channelHTML += "<div id='reverbTypelbl' class='controlLbls'>reverb type</div>";
+      	channelHTML += "<div id='reverbHPFlbl' class='controlLbls'>high pass filter</div>";
+      	channelHTML += "<div id='reverbLPFlbl' class='controlLbls'>low pass filter</div>";
+      		//insert border divs
+      	channelHTML += "<div id='tempoBorder' class='border'></div>";
+      	channelHTML += "<div id='delayMasterBorder' class='border'></div>";
+      	channelHTML += "<div id='reverbMasterBorder' class='border'></div>";
+      		//main label for the channel
+      	channelHTML += "<div id='mLabel' class='Mlbl'>Master</div>";
+      		// ? button divs
+      	channelHTML += "<div class='Q MasterQ' id='MQ'>?</div>"; //EQ '?' div as button
+      		//eco button (to hide meters thus saving CPU cycles)
+      	channelHTML += "<div id='ecoBtn'>eco view</div>"; //eco div as button
+      		//transport buttons
+      	channelHTML += "<div id='playBtn' class='btns'></div>";
+      	channelHTML += "<div id='pauseBtn' class='btns'></div>";
+      	channelHTML += "<div id='stopBtn' class='btns'></div>";
+      	channelHTML += "<div id='resetBtn' class='btns'>Reset</div>";
+      	channelHTML += "<div id='flattenBtn' class='btns'>Flatten</div>";
+      	channelHTML += "<div id='saveBtn' class='btns'>Save</div>";
+      	channelHTML += "<div id='checkBtn' class='btns'>Compare</div>";
+      	channelHTML += "<span id='loadingMessage'>Loading...</span>";
+      	channelHTML += "<div id='timerLbl'></div>";
+      		//position slider
+      	channelHTML += "<input type='range' className='position' id='pos' min='0' max='1' value='0' step='0.00001' onmousedown='mousedownChangePos()' onmouseup='clickedChangeSongPos(this)'>"
+      		//song info box
+      	channelHTML += "<div id='songInfo'><div id='innerInfo'></div><div id='remixerInfo'></div><div id='mixSelectControls'><span id='arrowL'><img src='/images/arrowLeft.png' height='23px' width='23px'></span><span id='arrowR'><img src='/images/arrowRight.png' height='23px' width='23px'></span><span id='remixSwapLbl'>NEXT</span></div><span id='noRemixesLbl' style='display:block'>No remixes found</span></div>"
+      	//write the master channel HTML to the div within the mixer
+      	document.getElementById('masterChannel').innerHTML = channelHTML;
+
+      	//write song information
+      	document.getElementById('innerInfo').innerHTML = 'You are remixing ' + songTitle + ' by ' + '<a href="/artist/<%=theData[0].artistId%>" target="_blank"><%= theData[0].artist %></a>';
+
+      	//if this is a 'lesson' (genre) hide the save button
+      	if ('<%= theData[0].genre %>' == 'lessons') {
+      		//alert('this is a lesson');
+      		//hide the save button
+      		$('#saveBtn').hide();
+      		$('#resetBtn').css('left', 70);
+      		$('#checkBtn').css('left', 20);
+      	};
+
+      /*************** GET THE DEFAULT MIX & PUT INTO MEMORY ********************************/
+      //pullSavedState(songID, mixID); //get the default remix
+
+      getMixIDs(songID); //get the database id's for this song's mixes (from the song mixes table)
+
+      /*************** UI INTERACTIONS *******************************************************/
+
+      	//changed a stem from a drop-down box
+      	function changeStem (value, id) {
+
+      		if (playing == true) {
+      			pause();
+      			waiting = true;
+      		};
+      		//hide the transport buttons and show the loading message
+      		document.getElementById('playBtn').style.display = 'none';
+      		document.getElementById('stopBtn').style.display = 'none';
+      		document.getElementById('loadingMessage').style.display = 'block';
+      		tracksLoaded = tracksLoaded - 1;
+      		//we can safely load a new sample
+      		loadSound(trackURLs[id][value], id );
+      		//now store the name of the newly selected stem
+      		selectedStems[id] = value; //the selected option;
+      		//push this interaction to the database
+      		pushInteractionToDB(".stemChange", id, value);
+      	};
+
+      	//this just stops the timer if the user clicks on the sng position slider - needed as the timer steals control from the user
+      	function mousedownChangePos() {
+      		//stop the timer as it interferes with the user interactio
+      		clearInterval(timer); //stop the timer
+      	};
+
+      	//the song position slider is changed
+      	function clickedChangeSongPos (that) {
+      		//update thePos so we start playing from the right place
+      		thePos = that.value;
+      		//if we are already playing do a quick stop/start
+      		if (playing == true) {
+      			pause(); //note this function updates thePos and so we need to override this
+      			thePos = that.value;
+      			play();
+      		} else {
+      			//we've changed the slider whilst the song is stopped/paused so just update thePos relative to the new scrollbar position
+      			thePos = that.value;
+      		};
+      		document.getElementById('timerLbl').innerHTML = '';
+
+      	};
+
+      	//a volume fader is changed
+      	function changeVol (that) {
+      		M[that.dataset.channel].volume = that.value;
+      		//console.log('new Volume: ' + M[that.id].volume);
+      		if (playing == true) {
+      			C[that.dataset.channel].volNode.gain.value = convertLinear(that.value, 0, 1); //if audio is playing change the volumes when the slider is moved
+      		};
+      	};
+      	//and push the change to the database
+      	function pushVolChange (that) {
+      		//console.log('slider moved to: ' + that.value);
+      		pushInteractionToDB(".volFader", that.dataset.channel, that.value);
+      	};
+
+      	//reverb type has been changed
+      	function clickedRevChange (that) {
+      		var k = 0;
+      		if (that == 'Ambience') {
+      			k = 0;
+      		} else if (that == 'Room') {
+      			k = 0.2;
+      		} else if (that == 'Chamber') {
+      			k = 0.4;
+      		} else if (that == 'Hall') {
+      			k = 0.6;
+      		} else if (that == 'Chorus') {
+      			k = 0.8;
+      		} else if (that == 'SciFi') {
+      			k = 1;
+      		};
+      		M[8].revType = k;
+      		if (playing == true) {
+      			//buffers can't be set during playback so I need to pause then restart after setting the reverb buffer
+      			pause();
+      			play();
+      		};
+      	};
+
+      	//reverb high pass filter changed
+      	function clickedRevHPChange (that) {
+      		if (playing == true) {
+      			//if the control is at default do a quick pause then play to make it build the revHP filter
+      			if (M[8].reverbHP == 0) {
+      				M[8].reverbHP = that;
+      				pause();
+      				play();
+      			} else {
+      				//otherwise just set the web audio param
+      				C[8].reverbHPNode.frequency.value = convertLog(that, 1, 3000); //calculate low frequency cutoff mapping from 0..1 to log 1..3000
+      			}
+      		} else {
+      			//we are not playing so just store the new value
+      			M[8].reverbHP = that;
+      		};
+      	};
+
+      	//reverb low pass filter changed
+      	function clickedRevLPChange (that) {
+      		if (playing == true) {
+      			//if the control is at default do a quick pause then play to make it build the revLP filter
+      			if (M[8].reverbLP == 1) {
+      				M[8].reverbLP = that;
+      				pause();
+      				play();
+      			} else {
+      				//otherwise just set the web audio param
+      				C[8].reverbLPNode.frequency.value = convertLog(that, 600, 20000); //calculate low frequency cutoff mapping from 0..1 to log 1..3000
+      			}
+      		} else {
+      			//we are not playing so just store the new value
+      			M[8].reverbLP = that;
+      		};
+
+      	};
+
+      	//delay time has been changed
+      	function clickedDelayTChange (that) {
+      		M[8].delayT = that;
+      		//now update the delay node
+      		if (playing == true) {
+      			C[8].delayNode.delayTime.value = convertLinear(that, 0.02, 1); //delay time amount
+      		};
+      	};
+
+      	//delay feedback has been changed
+      	function clickedDelayFBChange (that) {
+      		M[8].delayFB = that;
+      		//now update the gain node
+      		if (playing == true) {
+      			C[8].delayFBNode.gain.value = convertLinear(that, 0, 1);
+      		};
+      	};
+
+      	//delay high pass filter changed
+      	function clickedDelHPChange (that) {
+      		M[8].delayHP = that
+      		if (playing == true) {
+      			C[8].delayHPNode.frequency.value = convertLog(that, 1, 3000); //calculate low frequency cutoff mapping from 0..1 to log 1..3000
+      		};
+      	};
+
+      	//delay low pass filter changed
+      	function clickedDelLPChange (that) {
+      		M[8].delayLP = that
+      		if (playing == true) {
+      			C[8].delayLPNode.frequency.value = convertLog(that, 600, 20000); //calculate low frequency cutoff mapping from 0..1 to log 600..20000
+      		};
+      	};
+
+      /*************** OTHER FUNCTION DECLARATIONS ***********************************************/
+
+      	//load sound function
+      	function loadSound(url, theTrack){
+      		var request = new XMLHttpRequest();
+      		request.open("GET", url, true); //path to audio file
+      		request.responseType = "arraybuffer"; //reads it in as binary data
+      		request.onload = function() {
+      			context.decodeAudioData(request.response, function (buffer) {
+      				//CALLBACK FUNCTION - WHEN A TRACK IS READY
+      				//increment numChannels variable
+      				tracksLoaded++;
+      				//load the decoded audio into a buffer
+      				C[theTrack].mySoundBuffer = buffer;
+      				//store the duration of the audio track (in seconds)
+      				if ( C[theTrack].mySoundBuffer.duration > songLength) {
+      					songLength = C[theTrack].mySoundBuffer.duration
+      				};
+      				//check if all tracks are now loaded
+      				if (tracksLoaded == numChannels) {
+      					document.getElementById('loadingMessage').style.display = 'none';
+      					document.getElementById('playBtn').style.display = 'block';
+      					document.getElementById('stopBtn').style.display = 'block';
+      				};
+      				//if the user was trying to change a sample on the fly waiting will have been set true and so play should resume
+      				if (waiting == true && tracksLoaded == numChannels) {
+      					waiting = false;
+      					play();
+      				};
+      			});
+      		};
+      		request.send();
+      	};
+
+      	//load impulse response sound function
+      	function loadSoundIR(url, pos){
+      		var request = new XMLHttpRequest();
+      		request.open("GET", url, true); //path to audio file
+      		request.responseType = "arraybuffer"; //reads it in as binary data
+      		request.onload = function() {
+      			context.decodeAudioData(request.response, function (buffer) {
+      				//CALLBACK FUNCTION - WHEN A TRACK IS READY
+      				//load the decoded audio into a buffer
+      				IRs[pos] = buffer;
+      			});
+      		};
+      		request.send();
+      	};
+
+      	//for the meters - nx.onload function
+      	nx.onload = function () {
+      		nx.colorize('fill', '#434746'); //sets accent
+      		// nx.setThrottlePeriod(2);
+      		// nx.throttlePeriod = 2000;
+      		//nx.colorize('accent', '#434746'); //sets accent
+      		//nx.colorize('border', '#434746'); //sets accent
+      		//nx.colorize('accentborder', '#434746'); //sets accent
+
+      	};
+
+      	//play button routine
+      	function play(){
+      		//check if all tracks have now loaded and if so
+      		if (tracksLoaded == numChannels) {
+      			playing = true;
+      			//hide play button and show pause button
+      			$('#playBtn').css({'display': 'none'});
+      			$('#pauseBtn').css({'display': 'block'});
+      			//recreate master channel now so it's ready to handle the new connections
+      		 	C[8].reverbNode.buffer = null; //clear the buffer (or at least let the garbage collector do it)
+      			C[8] = new masterC(); //create a new master channel to ensure the old reverb node is fully replaced
+      			C[8].reverbNode.buffer = IRs[M[8].revType * 5]; //put the impulse response into the convolver's buffer. That * 5 will map from 0,0.2,0.4 etc. to integers which we need for list positions
+
+      			//loop through the tracks, create the connections and buffers
+      			for (var i=0; i<numChannels; i++) {
+      				C[i].sourceNode = context.createBufferSource();
+      			 	C[i].sourceNode.buffer = C[i].mySoundBuffer;
+      			 	//add all the EQ nodes by default to solve the EQ volume jump on EQ ACTIVE BUG
+
+      			 	C[i].sourceNode.connect(C[i].HFNode);
+      			 	C[i].HFNode.connect(C[i].HMFNode);
+      			 	C[i].HMFNode.connect(C[i].LMFNode);
+      			 	C[i].LMFNode.connect(C[i].LFNode);
+      			 	//note the last node connected
+      			 	var last = 'LMFNode';
+
+      			 	//if threshold is not at default connect compNode to last node
+      			 	if (M[i].threshold != 0) {
+      			 		C[i].LFNode.connect(C[i].compNode)
+      			 		last = 'compNode'; //store compMakeup as lastNode
+      			 	};
+      			 	//if make-up gain is not at default connect compMakeupNode to last node
+      			 	if (M[i].compMakeup != 0) {
+      			 		if (last == 'compNode') {
+      			 			C[i].compNode.connect(C[i].compMakeupNode)
+      			 		} else {
+      			 			C[i].LFNode.connect(C[i].compMakeupNode)
+      			 		};
+      			 		last = 'compMakeupNode'; //store compMakeup as lastNode
+      			 	};
+      			 	//if distortion is not at default connect distortionNode to last node
+      			 	if (M[i].drive != 0) {
+      			 		if (last == 'compMakeupNode') {
+      			 			C[i].compMakeupNode.connect(C[i].distortionNode)
+      			 		} else if (last == 'compNode') {
+      			 			C[i].compNode.connect(C[i].distortionNode)
+      			 		} else {
+      			 			C[i].LFNode.connect(C[i].distortionNode)
+      			 		};
+      			 		C[i].distortionNode.connect(C[i].distTrimNode);//add distTrimNode to the chain
+      			 		last = 'distTrimNode'; //store distTrimNode as lastNode
+      			 	};
+      			 	//now connect the last node onwards
+      			 	if (last == 'distTrimNode') {
+      		 			C[i].distTrimNode.connect(C[i].volNode);
+      		 		} else if (last == 'compMakeupNode') {
+      		 			C[i].compMakeupNode.connect(C[i].volNode)
+      		 		} else if (last == 'compNode') {
+      			 		C[i].compNode.connect(C[i].volNode)
+      			 	} else {
+      		 			C[i].LFNode.connect(C[i].volNode)
+      		 		};
+
+      		 		//connect the volume nodes into the other nodes
+      			 	C[i].volNode.connect(C[i].muteNode);
+      			 	C[i].muteNode.connect(C[i].panNode);
+      			 	C[i].muteNode.connect(C[i].reverbSendNode);
+      			 	C[i].reverbSendNode.connect(C[8].reverbNode); //connection to master reverb
+      			 	C[i].muteNode.connect(C[i].delaySendNode);
+      			 	C[i].delaySendNode.connect(C[8].delayNode); //connection to master delay
+      			 	C[i].panNode.connect(context.destination);
+      			};
+      			//connect master channel
+      			//if reverbHPNode is not at default connect reverbNode to reverbHPNode
+      			last = 'reverbNode';
+      			if (M[8].reverbHP != 0) {
+      				C[8].reverbNode.connect(C[8].reverbHPNode);
+      				last = 'reverbHPNode'; //store reverbHPNode as lastNode
+      			};
+      			//if reverbLPNode is not at default connect reverbLPNode to lastNode
+      			if (M[8].reverbLP != 1) {
+      				if (last == 'reverbHPNode') {
+      					C[8].reverbHPNode.connect(C[8].reverbLPNode);
+      				} else if (last == 'reverbNode') {
+      					C[8].reverbNode.connect(C[8].reverbLPNode);
+      				};
+      				last = 'reverbLPNode'; //store reverbLPNode as lastNode
+      			};
+      			if (last == 'reverbLPNode') {
+      				C[8].reverbLPNode.connect(context.destination);
+      			} else if (last == 'reverbHPNode') {
+      				C[8].reverbHPNode.connect(context.destination);
+      			} else {
+      				C[8].reverbNode.connect(context.destination);
+      			};
+
+      			//if delayLPNode is not at default connect delayNode to delayLPNode
+      			 		//store delayLPNode as lastNode
+      			C[8].delayNode.connect(C[8].delayLPNode);
+      			//if delayHPNode is not at default connect lastNode to delayHPNode
+      			 		//store delayHPNode as lastNode
+      			C[8].delayLPNode.connect(C[8].delayHPNode);
+      			C[8].delayHPNode.connect(C[8].delayFBNode);
+      			C[8].delayFBNode.connect(C[8].delayNode);
+
+      			//C[8].delayHPNode.connect(C[8].delayNode);
+
+      			C[8].delayHPNode.connect(context.destination);
+      			//prep the volume meters
+      			meter0.setup(context,C[0].panNode);
+      			if (numChannels > 1) {meter1.setup(context,C[1].panNode)};
+      			if (numChannels > 2) {meter2.setup(context,C[2].panNode)};
+      			if (numChannels > 3) {meter3.setup(context,C[3].panNode)};
+      			if (numChannels > 4) {meter4.setup(context,C[4].panNode)};
+      			if (numChannels > 5) {meter5.setup(context,C[5].panNode)};
+      			if (numChannels > 6) {meter6.setup(context,C[6].panNode)};
+      			if (numChannels > 7) {meter7.setup(context,C[7].panNode)};
+
+      			//set control values
+      			setWebAudioParams();
+
+      			//start the tracks
+      			for (var i=0; i<numChannels; i++) {
+      				C[i].sourceNode.start(0, (thePos * songLength));
+      			};
+
+      			//collect the timing info
+      			initTime = context.currentTime - (thePos * (songLength / M[8].speed));
+      			//start the timer
+      			timer = setInterval(onTimer, 1000);
+      			//wipe the playback position label
+      			document.getElementById('timerLbl').innerHTML = '';
+
+      		} else {
+      			alert ('still loading tracks please try again shortly');
+      		};
+
+      	};
+
+      	//pause button routine
+      	function pause () {
+      		if (playing == true) {
+      			//hide pause button and show play button
+      			$('#playBtn').css({'display': 'block'});
+      			$('#pauseBtn').css({'display': 'none'});
+      			for (var i=0; i<numChannels; i++) {
+      				C[i].sourceNode.stop(context.currentTime);
+      				C[i].sourceNode.disconnect();
+      			};
+      			C[8].delayLPNode.disconnect();
+      			C[8].delayHPNode.disconnect();
+      			C[8].delayFBNode.disconnect();
+      			//store the position in the song that we reached
+      			thePos = (context.currentTime - initTime) / (songLength / M[8].speed);
+      			playing = false; //update the playing flag variable
+      		};
+      		clearInterval(timer); //stop the timer
+      		//Show the song position
+      		document.getElementById('timerLbl').innerHTML = (Math.round(context.currentTime - initTime)).toString().toMMSS();
+      		//document.getElementById('timerLbl').innerHTML = thePos;
+      	};
+
+      	//stop button routine (as pause but resets song position 'thePos' to 0)
+      	function stop(){
+      		if (playing == true) {
+      			//hide pause button and show play button
+      			$('#playBtn').css({'display': 'block'});
+      			$('#pauseBtn').css({'display': 'none'});
+      			for (var i=0; i<numChannels; i++) {
+      				C[i].sourceNode.stop(context.currentTime);
+      				C[i].sourceNode.disconnect();
+      			};
+      			C[8].delayLPNode.disconnect();
+      			C[8].delayHPNode.disconnect();
+      			C[8].delayFBNode.disconnect();
+      		playing = false; //update the playing flag variable
+      		};
+      		clearInterval(timer); //stop the timer
+      		thePos = 0; //reset the position to the start
+      		//adjust the position of the playBackPosition slider
+      		document.getElementById('pos').value = thePos;
+      		document.getElementById('timerLbl').innerHTML = "";
+      	};
+
+      	//function is called after we get a mix from the database we need to put it into our data structure
+      	function mixToVariables(aMix) {
+      		//alert(theMix.userId);
+      		if (numChannels > 0) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T1Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[0] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 0 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect0").val(aMix.T1Stem);
+      					//change the stem
+      					changeStem (returnedStem, 0)
+      					//now store the name of the newly selected stem
+      					selectedStems[0] = returnedStem; //the selected option;
+      					};
+      			M[0].volume = aMix.M0vol;
+      			M[0].mute = aMix.M0mute;
+      			M[0].solo = aMix.M0solo;
+      			M[0].HG = aMix.M0HG;
+      			M[0].HF = aMix.M0HF;
+      			M[0].HQ = aMix.M0HQ;
+      			M[0].HType = aMix.M0HType;
+      			M[0].HMF = aMix.M0HMF;
+      			M[0].HMG = aMix.M0HMG;
+      			M[0].HMQ = aMix.M0HMQ;
+      			M[0].HMType = aMix.M0HMType;
+      			M[0].LMF = aMix.M0LMF;
+      			M[0].LMG = aMix.M0LMG;
+      			M[0].LMQ = aMix.M0LMQ;
+      			M[0].LMType = aMix.M0LMType;
+      			M[0].LType = aMix.M0LType;
+      			M[0].LG = aMix.M0LG;
+      			M[0].LF = aMix.M0LF;
+      			M[0].LQ = aMix.M0LQ;
+      			M[0].compActive = aMix.M0compActive;
+      			M[0].ratio = aMix.M0ratio;
+      			M[0].threshold = aMix.M0threshold;
+      			M[0].knee = aMix.M0knee;
+      			M[0].attack = aMix.M0attack;
+      			M[0].release = aMix.M0release;
+      			M[0].compMakeup = aMix.M0compMakeup;
+      			M[0].driveActive = aMix.M0driveActive;
+      			M[0].drive = aMix.M0drive;
+      			M[0].driveTrim = aMix.M0driveTrim;
+      			M[0].pan = aMix.M0pan;
+      			M[0].reverbActive = aMix.M0reverbActive;
+      			M[0].reverb = aMix.M0reverb;
+      			M[0].delayActive = aMix.M0delayActive;
+      			M[0].delay = aMix.M0delay;
+      		};
+      		if (numChannels > 1) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T2Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[1] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 1 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect1").val(aMix.T2Stem);
+      					//change the stem
+      					changeStem (returnedStem, 1)
+      					//now store the name of the newly selected stem
+      					selectedStems[1] = returnedStem; //the selected option;
+      					};
+      			M[1].volume = aMix.M1vol;
+      			M[1].mute = aMix.M1mute;
+      			M[1].solo = aMix.M1solo;
+      			M[1].HG = aMix.M1HG;
+      			M[1].HF = aMix.M1HF;
+      			M[1].HQ = aMix.M1HQ;
+      			M[1].HType = aMix.M1HType;
+      			M[1].HMF = aMix.M1HMF;
+      			M[1].HMG = aMix.M1HMG;
+      			M[1].HMQ = aMix.M1HMQ;
+      			M[1].HMType = aMix.M1HMType;
+      			M[1].LMF = aMix.M1LMF;
+      			M[1].LMG = aMix.M1LMG;
+      			M[1].LMQ = aMix.M1LMQ;
+      			M[1].LMType = aMix.M1LMType;
+      			M[1].LType = aMix.M1LType;
+      			M[1].LG = aMix.M1LG;
+      			M[1].LF = aMix.M1LF;
+      			M[1].LQ = aMix.M1LQ;
+      			M[1].compActive = aMix.M1compActive;
+      			M[1].ratio = aMix.M1ratio;
+      			M[1].threshold = aMix.M1threshold;
+      			M[1].knee = aMix.M1knee;
+      			M[1].attack = aMix.M1attack;
+      			M[1].release = aMix.M1release;
+      			M[1].compMakeup = aMix.M1compMakeup;
+      			M[1].driveActive = aMix.M1driveActive;
+      			M[1].drive = aMix.M1drive;
+      			M[1].driveTrim = aMix.M1driveTrim;
+      			M[1].pan = aMix.M1pan;
+      			M[1].reverbActive = aMix.M1reverbActive;
+      			M[1].reverb = aMix.M1reverb;
+      			M[1].delayActive = aMix.M1delayActive;
+      			M[1].delay = aMix.M1delay;
+      		};
+      		if (numChannels > 2) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T3Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[2] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 2 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect2").val(aMix.T3Stem);
+      					//change the stem
+      					changeStem (returnedStem, 2)
+      					//now store the name of the newly selected stem
+      					selectedStems[2] = returnedStem; //the selected option;
+      					};
+      			M[2].volume = aMix.M2vol;
+      			M[2].mute = aMix.M2mute;
+      			M[2].solo = aMix.M2solo;
+      			M[2].HG = aMix.M2HG;
+      			M[2].HF = aMix.M2HF;
+      			M[2].HQ = aMix.M2HQ;
+      			M[2].HType = aMix.M2HType;
+      			M[2].HMF = aMix.M2HMF;
+      			M[2].HMG = aMix.M2HMG;
+      			M[2].HMQ = aMix.M2HMQ;
+      			M[2].HMType = aMix.M2HMType;
+      			M[2].LMF = aMix.M2LMF;
+      			M[2].LMG = aMix.M2LMG;
+      			M[2].LMQ = aMix.M2LMQ;
+      			M[2].LMType = aMix.M2LMType;
+      			M[2].LType = aMix.M2LType;
+      			M[2].LG = aMix.M2LG;
+      			M[2].LF = aMix.M2LF;
+      			M[2].LQ = aMix.M2LQ;
+      			M[2].compActive = aMix.M2compActive;
+      			M[2].ratio = aMix.M2ratio;
+      			M[2].threshold = aMix.M2threshold;
+      			M[2].knee = aMix.M2knee;
+      			M[2].attack = aMix.M2attack;
+      			M[2].release = aMix.M2release;
+      			M[2].compMakeup = aMix.M2compMakeup;
+      			M[2].driveActive = aMix.M2driveActive;
+      			M[2].drive = aMix.M2drive;
+      			M[2].driveTrim = aMix.M2driveTrim;
+      			M[2].pan = aMix.M2pan;
+      			M[2].reverbActive = aMix.M2reverbActive;
+      			M[2].reverb = aMix.M2reverb;
+      			M[2].delayActive = aMix.M2delayActive;
+      			M[2].delay = aMix.M2delay;
+      		};
+      		if (numChannels > 3) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T4Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[3] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 3 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect3").val(aMix.T4Stem);
+      					//change the stem
+      					changeStem (returnedStem, 3)
+      					//now store the name of the newly selected stem
+      					selectedStems[3] = returnedStem; //the selected option;
+      					};
+      			M[3].volume = aMix.M3vol;
+      			M[3].mute = aMix.M3mute;
+      			M[3].solo = aMix.M3solo;
+      			M[3].HG = aMix.M3HG;
+      			M[3].HF = aMix.M3HF;
+      			M[3].HQ = aMix.M3HQ;
+      			M[3].HType = aMix.M3HType;
+      			M[3].HMF = aMix.M3HMF;
+      			M[3].HMG = aMix.M3HMG;
+      			M[3].HMQ = aMix.M3HMQ;
+      			M[3].HMType = aMix.M3HMType;
+      			M[3].LMF = aMix.M3LMF;
+      			M[3].LMG = aMix.M3LMG;
+      			M[3].LMQ = aMix.M3LMQ;
+      			M[3].LMType = aMix.M3LMType;
+      			M[3].LType = aMix.M3LType;
+      			M[3].LG = aMix.M3LG;
+      			M[3].LF = aMix.M3LF;
+      			M[3].LQ = aMix.M3LQ;
+      			M[3].compActive = aMix.M3compActive;
+      			M[3].ratio = aMix.M3ratio;
+      			M[3].threshold = aMix.M3threshold;
+      			M[3].knee = aMix.M3knee;
+      			M[3].attack = aMix.M3attack;
+      			M[3].release = aMix.M3release;
+      			M[3].compMakeup = aMix.M3compMakeup;
+      			M[3].driveActive = aMix.M3driveActive;
+      			M[3].drive = aMix.M3drive;
+      			M[3].driveTrim = aMix.M3driveTrim;
+      			M[3].pan = aMix.M3pan;
+      			M[3].reverbActive = aMix.M3reverbActive;
+      			M[3].reverb = aMix.M3reverb;
+      			M[3].delayActive = aMix.M3delayActive;
+      			M[3].delay = aMix.M3delay;
+      		};
+      		if (numChannels > 4) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T5Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[4] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 4 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect4").val(aMix.T5Stem);
+      					//change the stem
+      					changeStem (returnedStem, 4);
+      					//now store the name of the newly selected stem
+      					selectedStems[4] = returnedStem; //the selected option;
+      					};
+      			M[4].volume = aMix.M4vol;
+      			M[4].mute = aMix.M4mute;
+      			M[4].solo = aMix.M4solo;
+      			M[4].HG = aMix.M4HG;
+      			M[4].HF = aMix.M4HF;
+      			M[4].HQ = aMix.M4HQ;
+      			M[4].HType = aMix.M4HType;
+      			M[4].HMF = aMix.M4HMF;
+      			M[4].HMG = aMix.M4HMG;
+      			M[4].HMQ = aMix.M4HMQ;
+      			M[4].HMType = aMix.M4HMType;
+      			M[4].LMF = aMix.M4LMF;
+      			M[4].LMG = aMix.M4LMG;
+      			M[4].LMQ = aMix.M4LMQ;
+      			M[4].LMType = aMix.M4LMType;
+      			M[4].LType = aMix.M4LType;
+      			M[4].LG = aMix.M4LG;
+      			M[4].LF = aMix.M4LF;
+      			M[4].LQ = aMix.M4LQ;
+      			M[4].compActive = aMix.M4compActive;
+      			M[4].ratio = aMix.M4ratio;
+      			M[4].threshold = aMix.M4threshold;
+      			M[4].knee = aMix.M4knee;
+      			M[4].attack = aMix.M4attack;
+      			M[4].release = aMix.M4release;
+      			M[4].compMakeup = aMix.M4compMakeup;
+      			M[4].driveActive = aMix.M4driveActive;
+      			M[4].drive = aMix.M4drive;
+      			M[4].driveTrim = aMix.M4driveTrim;
+      			M[4].pan = aMix.M4pan;
+      			M[4].reverbActive = aMix.M4reverbActive;
+      			M[4].reverb = aMix.M4reverb;
+      			M[4].delayActive = aMix.M4delayActive;
+      			M[4].delay = aMix.M4delay;
+      		};
+      		if (numChannels > 5) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T6Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[5] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 5 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect5").val(aMix.T6Stem);
+      					//change the stem
+      					changeStem (returnedStem, 5)
+      					//now store the name of the newly selected stem
+      					selectedStems[5] = returnedStem; //the selected option;
+      					};
+      			M[5].volume = aMix.M5vol;
+      			M[5].mute = aMix.M5mute;
+      			M[5].solo = aMix.M5solo;
+      			M[5].HG = aMix.M5HG;
+      			M[5].HF = aMix.M5HF;
+      			M[5].HQ = aMix.M5HQ;
+      			M[5].HType = aMix.M5HType;
+      			M[5].HMF = aMix.M5HMF;
+      			M[5].HMG = aMix.M5HMG;
+      			M[5].HMQ = aMix.M5HMQ;
+      			M[5].HMType = aMix.M5HMType;
+      			M[5].LMF = aMix.M5LMF;
+      			M[5].LMG = aMix.M5LMG;
+      			M[5].LMQ = aMix.M5LMQ;
+      			M[5].LMType = aMix.M5LMType;
+      			M[5].LType = aMix.M5LType;
+      			M[5].LG = aMix.M5LG;
+      			M[5].LF = aMix.M5LF;
+      			M[5].LQ = aMix.M5LQ;
+      			M[5].compActive = aMix.M5compActive;
+      			M[5].ratio = aMix.M5ratio;
+      			M[5].threshold = aMix.M5threshold;
+      			M[5].knee = aMix.M5knee;
+      			M[5].attack = aMix.M5attack;
+      			M[5].release = aMix.M5release;
+      			M[5].compMakeup = aMix.M5compMakeup;
+      			M[5].driveActive = aMix.M5driveActive;
+      			M[5].drive = aMix.M5drive;
+      			M[5].driveTrim = aMix.M5driveTrim;
+      			M[5].pan = aMix.M5pan;
+      			M[5].reverbActive = aMix.M5reverbActive;
+      			M[5].reverb = aMix.M5reverb;
+      			M[5].delayActive = aMix.M5delayActive;
+      			M[5].delay = aMix.M5delay;
+      		};
+      		if (numChannels > 6) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T7Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[6] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 6 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect6").val(aMix.T7Stem);
+      					//change the stem
+      					changeStem (returnedStem, 6);
+      					//now store the name of the newly selected stem
+      					selectedStems[6] = returnedStem; //the selected option;
+      					};
+      			M[6].volume = aMix.M6vol;
+      			M[6].mute = aMix.M6mute;
+      			M[6].solo = aMix.M6solo;
+      			M[6].HG = aMix.M6HG;
+      			M[6].HF = aMix.M6HF;
+      			M[6].HQ = aMix.M6HQ;
+      			M[6].HType = aMix.M6HType;
+      			M[6].HMF = aMix.M6HMF;
+      			M[6].HMG = aMix.M6HMG;
+      			M[6].HMQ = aMix.M6HMQ;
+      			M[6].HMType = aMix.M6HMType;
+      			M[6].LMF = aMix.M6LMF;
+      			M[6].LMG = aMix.M6LMG;
+      			M[6].LMQ = aMix.M6LMQ;
+      			M[6].LMType = aMix.M6LMType;
+      			M[6].LType = aMix.M6LType;
+      			M[6].LG = aMix.M6LG;
+      			M[6].LF = aMix.M6LF;
+      			M[6].LQ = aMix.M6LQ;
+      			M[6].compActive = aMix.M6compActive;
+      			M[6].ratio = aMix.M6ratio;
+      			M[6].threshold = aMix.M6threshold;
+      			M[6].knee = aMix.M6knee;
+      			M[6].attack = aMix.M6attack;
+      			M[6].release = aMix.M6release;
+      			M[6].compMakeup = aMix.M6compMakeup;
+      			M[6].driveActive = aMix.M6driveActive;
+      			M[6].drive = aMix.M6drive;
+      			M[6].driveTrim = aMix.M6driveTrim;
+      			M[6].pan = aMix.M6pan;
+      			M[6].reverbActive = aMix.M6reverbActive;
+      			M[6].reverb = aMix.M6reverb;
+      			M[6].delayActive = aMix.M6delayActive;
+      			M[6].delay = aMix.M6delay;
+      		};
+      		if (numChannels > 7) {
+      			//check if we need to change the sample on this channel
+      				var returnedStem = Number(aMix.T8Stem);
+      				//check if the current sample is the first in the list
+      				if (selectedStems[7] != returnedStem) {
+      					//change the selection box text to match (selecting via index to do this)
+      					//$(".sampSelect#" + 7 + " :nth-child(" + (returnedStem + 1) + ")").prop('selected', true); //nth child(1) gives us the first list item
+      					$("#sampleSelect7").val(aMix.T8Stem);
+      					//change the stem
+      					changeStem (returnedStem, 7);
+      					//now store the name of the newly selected stem
+      					selectedStems[7] = returnedStem; //the selected option;
+      					};
+      			M[7].volume = aMix.M7vol;
+      			M[7].mute = aMix.M7mute;
+      			M[7].solo = aMix.M7solo;
+      			M[7].HG = aMix.M7HG;
+      			M[7].HF = aMix.M7HF;
+      			M[7].HQ = aMix.M7HQ;
+      			M[7].HType = aMix.M7HType;
+      			M[7].HMF = aMix.M7HMF;
+      			M[7].HMG = aMix.M7HMG;
+      			M[7].HMQ = aMix.M7HMQ;
+      			M[7].HMType = aMix.M7HMType;
+      			M[7].LMF = aMix.M7LMF;
+      			M[7].LMG = aMix.M7LMG;
+      			M[7].LMQ = aMix.M7LMQ;
+      			M[7].LMType = aMix.M7LMType;
+      			M[7].LType = aMix.M7LType;
+      			M[7].LG = aMix.M7LG;
+      			M[7].LF = aMix.M7LF;
+      			M[7].LQ = aMix.M7LQ;
+      			M[7].compActive = aMix.M7compActive;
+      			M[7].ratio = aMix.M7ratio;
+      			M[7].threshold = aMix.M7threshold;
+      			M[7].knee = aMix.M7knee;
+      			M[7].attack = aMix.M7attack;
+      			M[7].release = aMix.M7release;
+      			M[7].compMakeup = aMix.M7compMakeup;
+      			M[7].driveActive = aMix.M7driveActive;
+      			M[7].drive = aMix.M7drive;
+      			M[7].driveTrim = aMix.M7driveTrim;
+      			M[7].pan = aMix.M7pan;
+      			M[7].reverbActive = aMix.M7reverbActive;
+      			M[7].reverb = aMix.M7reverb;
+      			M[7].delayActive = aMix.M7delayActive;
+      			M[7].delay = aMix.M7delay;
+      		};
+      		//and the master channel too
+      		M[8].revType = aMix.M8revType;
+      		M[8].reverbHP = aMix.M8reverbHP;
+      		M[8].reverbLP = aMix.M8reverbLP;
+      		M[8].delayT = aMix.M8delayT;
+      		M[8].delayFB = aMix.M8delayFB;
+      		M[8].delayHP = aMix.M8delayHP;
+      		M[8].delayLP = aMix.M8delayLP;
+      		M[8].speed = aMix.M8speed;
+      	};
+
+      	function setWebAudioParams(){
+      		//loop through all the tracks and do the following...
+      		for (var i=0; i<numChannels; i++) {
+      			//update volume
+      			C[i].volNode.gain.value = M[i].volume;
+      			//update mute nodes
+      			if (M[i].mute == "false") {
+      				C[i].muteNode.gain.value = 1;
+      			} else {C[i].muteNode.gain.value = 0;};
+
+      			//set distortion
+      			C[i].distortionNode.curve = makeDistortionCurve( M[i].drive * 100 ); //Set the distortion curve
+      			//set distortion trim
+      			C[i].distTrimNode.gain.value = M[i].driveTrim;
+      			//set High Filter
+      			C[i].HFNode.type = M[i].HType;
+      			C[i].HFNode.frequency.value = convertLog(M[i].HF, 2000, 20000); //calculate high frequency cutoff mapping from 0..1 to 2000..20000 > giving a default of 6kHz
+      			C[i].HFNode.Q.value = convertLog(M[i].HQ, 0.0001, 10); //set high frequency bandwidth mapping from 0..1 to log scale
+      			C[i].HFNode.gain.value = convertLinear(M[i].HG, -20, 20); //calculate and implement the boost or cut; -20..20 range
+      			//set High mid filter
+      			C[i].HMFNode.type = M[i].HMType;
+      			C[i].HMFNode.frequency.value = convertLog(M[i].HMF, 2000, 6000); //calculate high-mid frequency cutoff mapping from 0..1 to 2000..6000 > gives a center frequency of 3.5kHz
+      			C[i].HMFNode.gain.value = convertLinear(M[i].HMG, -20, 20); //calculate and implement the boost or cut; -20..20 range
+      			//console.log('HM centre frequency: ' + convertLog(M[i].HMF, 2000, 6000));
+      			//console.log('LM centre frequency: ' + convertLog(M[i].LMF, 250, 2000));
+      			C[i].HMFNode.Q.value = convertLog(M[i].HMQ, 0.0001, 10); //set high-mid frequency bandwidth mapping from 0..1 to log scale
+      			//set Low mid filter
+      			C[i].LMFNode.type = M[i].LMType;
+      			C[i].LMFNode.frequency.value = convertLog(M[i].LMF, 250, 2000); //calculate low-mid frequency cutoff mapping from 0..1 to 250..2000 > gives a center frequency of 700Hz
+      			C[i].LMFNode.Q.value = convertLog(M[i].LMQ, 0.0001, 10); //set low-mid frequency bandwidth mapping from 0..1 to log scale
+      			C[i].LMFNode.gain.value = convertLinear(M[i].LMG, -20, 20); //calculate and implement the boost or cut; -20..20 range
+      			//set low filter
+      			C[i].LFNode.type = M[i].LType;
+      			C[i].LFNode.frequency.value = convertLog(M[i].LF, 20, 500); //calculate LF centre frequency mapping from 0..1 to 1..500 > default give 100Hz
+      			C[i].LFNode.Q.value = convertLog(M[i].LQ, 0.0001, 10); //set high frequency bandwidth mapping from 0..1 to log scale
+      			C[i].LFNode.gain.value = convertLinear(M[i].LG, -20, 20); //calculate and implement the boost or cut; -20..20 range
+      			//set compressor
+      			C[i].compNode.threshold.value = convertLinear(1 - M[i].threshold, -100, 0); //calculate threshold
+      			C[i].compNode.ratio.value = convertLinear(M[i].ratio, 1, 20); //calculate ratio
+      			C[i].compNode.knee.value = convertLinear(M[i].ratio, 0, 40); //calculate knee
+      			C[i].compNode.attack.value = convertLinear(M[i].attack, 0, 1); //calculate attack
+      			C[i].compNode.release.value = convertLinear(M[i].release, 0, 1); //calculate release
+      			//set compressor trim
+      			C[i].compMakeupNode.gain.value = convertLinear(M[i].compMakeup, 1, 10);
+      			//set pan
+      			C[i].panNode.pan.value = convertLinear(M[i].pan, -1, 1);
+      			//set reverb sends
+      			C[i].reverbSendNode.gain.value = M[i].reverb;
+      			//set delay sends
+      			C[i].delaySendNode.gain.value = M[i].delay / 2;
+      			//set playback speeds
+      			C[i].sourceNode.playbackRate.value = M[8].speed;
+      		};
+      		//also set master controls
+      		C[8].reverbHPNode.type = 'highpass';
+      		C[8].reverbHPNode.frequency.value = convertLog(M[8].reverbHP, 20, 3000); //calculate high frequency cutoff mapping from 0..1 to 600..20000
+      		C[8].reverbLPNode.type = 'lowpass';
+      		C[8].reverbLPNode.frequency.value = convertLog(M[8].reverbLP, 600, 20000); //calculate low frequency cutoff mapping from 0..1 to log 1..3000
+      		C[8].delayNode.delayTime.value = M[8].delayT;
+      		C[8].delayFBNode.gain.value = M[8].delayFB;
+      		C[8].delayHPNode.type = 'highpass';
+      		C[8].delayHPNode.frequency.value = convertLog(M[8].delayHP, 20, 3000); //calculate high frequency cutoff mapping from 0..1 to 600..20000
+      		C[8].delayLPNode.type = 'lowpass';
+      		C[8].delayLPNode.frequency.value = convertLog(M[8].delayLP, 600, 20000); //calculate low frequency cutoff mapping from 0..1 to log 1..3000
+      		//check if anything needs soloed
+      		var check = checkSolo();
+      		if (check != -1) { //then we have to solo a track
+      			for (var i=0; i<numChannels; i++){
+      				//check if current track is the track to be soloed
+      				if (check != i) {
+      					C[i].muteNode.gain.value = 0; //set gain node > shouldn't be needed
+      				};
+      			};
+      		};
+      	};
+
+      	function setDial (val, dialPicId) {
+      			//let newY = "translateY(-" + ((Math.floor(val /2)) * dialHeight) + "px)";
+      			let newish = (Math.floor(val /2)) * dialHeight;
+      		     if (newish > 1960) {
+      		      	newish = 1960;
+      		      	//alert('newish exceeded 1960');
+      		     };
+      		     let newY = "translateY(-" + newish + "px)";
+      			//console.log('setting interface: ' + newY);
+      			document.getElementById(dialPicId).style.transform = newY;
+      	};
+
+      	function setInterface () {
+      		//set the setting interface flag to true so we won't record user interactions
+      		settingInterface = true;
+
+      		for (var i=0;i<numChannels;i++) {
+      			//reset EQ High Gain
+      			setDial(M[i].HG * 100, 'EQHGdialPic' + i);
+      			setDial(M[i].HF * 100, 'EQHFdialPic' + i);
+      			setDial(M[i].HMG * 100, 'EQHMGdialPic' + i);
+      			setDial(M[i].HMF * 100, 'EQHMFdialPic' + i);
+      			setDial(M[i].HMQ * 100, 'EQHMQdialPic' + i);
+      			setDial(M[i].LMG * 100, 'EQLMGdialPic' + i);
+      			setDial(M[i].LMF * 100, 'EQLMFdialPic' + i);
+      			setDial(M[i].LMQ * 100, 'EQLMQdialPic' + i);
+      			setDial(M[i].LG * 100, 'EQLGdialPic' + i);
+      			setDial(M[i].LF * 100, 'EQLFdialPic' + i);
+      			setDial(M[i].threshold * 100, 'CompThreshdialPic' + i);
+      			setDial(M[i].ratio * 100, 'CompRatiodialPic' + i);
+      			setDial(M[i].attack * 100, 'CompAttackdialPic' + i);
+      			setDial(M[i].release * 100, 'CompReleasedialPic' + i);
+      			setDial(M[i].knee * 100, 'CompKneedialPic' + i);
+      			setDial(M[i].compMakeup * 100, 'CompMakeupdialPic' + i);
+      			setDial(M[i].pan * 100, 'PandialPic' + i);
+      			setDial(M[i].drive * 100, 'DrivedialPic' + i);
+      			setDial(M[i].reverb * 100, 'ReverbdialPic' + i);
+      			setDial(M[i].delay * 100, 'DelaydialPic' + i);
+
+      			//ensure all solo divs are grey
+      			$('.soloBtn').css({'background': '#808080'});
+      			//set mute divs
+      			if (M[i].mute == "false") {
+      				//turn off mute light
+      				$('#btnMute' + i).css({'background': '#808080'});
+      			} else {
+      				//turn on mute light
+      				$('#btnMute' + i).css({'background': '#ff6600'});
+      			}
+      			//reset volume faders
+      			$('#volFader' + i).val(M[i].volume);
+      		}
+      		//now set the master channel controls
+      			setDial((M[8].speed - 0.8) * 250, 'PlaySpddialPic');
+      			//console.log('setting speed dial to ' + ((M[8].speed - 0.8) * 250));
+      			setDial(M[8].delayT * 100, 'DlayTdialPic');
+      			setDial(M[8].delayFB * 100, 'DlayFBdialPic');
+      			setDial(M[8].delayHP * 100, 'DlayHPFdialPic');
+      			setDial(M[8].delayLP * 100, 'DlayLPFdialPic');
+      			setDial(M[8].reverbHP * 100, 'revHPFdialPic');
+      			setDial(M[8].reverbLP * 100, 'revLPFdialPic');
+
+      			//reverb type
+      			if (M[8].revType == 0) {
+      				$("#revSelect").val('Ambience');
+      			} else if (M[8].revType == 0.2) {
+      				$("#revSelect").val('Room');
+      			} else if (M[8].revType == 0.4) {
+      				$("#revSelect").val('Chamber');
+      			} else if (M[8].revType == 0.6) {
+      				$("#revSelect").val('Hall');
+      			} else if (M[8].revType == 0.8) {
+      				$("#revSelect").val('Chorus');
+      			} else if (M[8].revType == 1) {
+      				$("#revSelect").val('SciFi');
+      			};
+
+      			//now change the setting interface flag back so we can record user interactions
+      			settingInterface = false;
+
+      	};
+
+      	//timer function
+      	function onTimer () {
+      		var currentPlace = (context.currentTime - initTime) / (songLength / M[8].speed);
+      		//check if the song has finished
+      		if (currentPlace > 1) {
+      			stop();
+      		};
+      		//adjust the position of the playBackPosition slider
+      		document.getElementById('pos').value = currentPlace;
+      		document.getElementById('timerLbl').innerHTML = (Math.round(context.currentTime - initTime)).toString().toMMSS();
+      	};
+
+      	//function to make a pretty number
+      	String.prototype.toMMSS = function () {
+      	    //var sec_num = parseInt(this, 10); // don't forget the second param
+      	    var minutes = Math.floor((this) / 60);
+      	    var seconds = this - (minutes * 60);
+
+      	    if (minutes < 10) {minutes = "0"+minutes;}
+      	    if (seconds < 10) {seconds = "0"+seconds;}
+      	    return minutes+':'+seconds;
+      	};
+
+      	//change playback speed
+      	function changeSpeed (newSpeed, oldSpeed) {
+      		//set playback rates
+      		for (var i=0; i<numChannels; i++) {
+              	C[i].sourceNode.playbackRate.value = newSpeed;
+      		};
+      		//if the speed is changed whilst the song is playing it gets tricky to keep track of what percentage of the way through the song we are
+      		if (playing == true) {
+      			//calculate the position in the song that we reached
+      			thePos = (context.currentTime - initTime) / (songLength / oldSpeed);
+      			//adjust initTime to the time the track would have started from had the new speed been used from the beginning
+      			initTime = context.currentTime - (thePos * (songLength / newSpeed));
+      		};
+      	};
+
+      	//math functions
+      	function convertLinear(value, lowest, highest){
+      		return (highest - lowest) * value + lowest;
+      	};
+
+      	//math functions
+      	function convertLog(position, lowest, highest) {
+      	  // position will be between 0 and 100
+      	  var minp = 0;
+      	  var maxp = 1;
+
+      	  // The result should be between 20 an 20000 for most filters
+      	  var minv = Math.log(lowest);
+      	  var maxv = Math.log(highest);
+
+      	  // calculate adjustment factor
+      	  var scale = (maxv-minv) / (maxp-minp);
+
+      	  return Math.exp(minv + scale*(position-minp));
+      	};
+
+      	function makeDistortionCurve(amount) {
+      			  //var k = typeof amount === 'number' ? amount : 50,
+      			  var k = amount,
+      			    n_samples = 44100,
+      			    curve = new Float32Array(n_samples),
+      			    deg = Math.PI / 180,
+      			    i = 0,
+      			    x;
+      			  for (var i = 0; i < n_samples; ++i ) {
+      			    x = i * 2 / n_samples - 1;
+      			    curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+      			  };
+      			  return curve;
+      			};
+
+      	//generic dial interaction
+      	$(".dial").mousedown(function(e) {
+      		//get value of this dial and put it into 'number' var
+      		initY = e.pageY;
+        		dragging = true;
+      		currentPicId = e.currentTarget.dataset.imgid;
+      		currentChan = e.currentTarget.dataset.channel;
+
+      		//connect dial to get the underlying variables value
+      		if (e.currentTarget.classList.contains('EQHG')) {
+      			//console.log('value of EQHG on channel ' + e.currentTarget.dataset.channel + ' is ' + M[e.currentTarget.dataset.channel].HG);
+      			number = M[e.currentTarget.dataset.channel].HG;
+      			currentDial = 'HG';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQHF')) {
+      			//console.log('value of EQHF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].HF);
+      			number = M[e.currentTarget.dataset.channel].HF;
+      			currentDial = 'HF';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQHMG')) {
+      			//console.log('value of EQHMG on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].HMG);
+      			number = M[e.currentTarget.dataset.channel].HMG;
+      			currentDial = 'HMG';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQHMF')) {
+      			//console.log('value of EQHMF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].HMF);
+      			number = M[e.currentTarget.dataset.channel].HMF;
+      			currentDial = 'HMF';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQHMQ')) {
+      			//console.log('value of EQHMQ on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].HMQ);
+      			number = M[e.currentTarget.dataset.channel].HMQ;
+      			currentDial = 'HMQ';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQLMG')) {
+      			//console.log('value of EQLMG on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].LMG);
+      			number = M[e.currentTarget.dataset.channel].LMG;
+      			currentDial = 'LMG';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQLMF')) {
+      			//console.log('value of EQLMF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].LMF);
+      			number = M[e.currentTarget.dataset.channel].LMF;
+      			currentDial = 'LMF';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQLMQ')) {
+      			//console.log('value of EQLMQ on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].LMQ);
+      			number = M[e.currentTarget.dataset.channel].LMQ;
+      			currentDial = 'LMQ';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQLG')) {
+      			//console.log('value of EQLG on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].LG);
+      			number = M[e.currentTarget.dataset.channel].LG;
+      			currentDial = 'LG';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('EQLF')) {
+                  //console.log('value of EQLF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].LF);
+                  number = M[e.currentTarget.dataset.channel].LF;
+                  currentDial = 'LF';
+                  //pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compThresh')) {
+      			//console.log('value of compThresh on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].threshold);
+      			number = M[e.currentTarget.dataset.channel].threshold;
+      			currentDial = 'threshold';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compRatio')) {
+      			//console.log('value of compRatio on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].ratio);
+      			number = M[e.currentTarget.dataset.channel].ratio;
+      			currentDial = 'ratio';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compAttack')) {
+      			//console.log('value of compAttack on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].attack);
+      			number = M[e.currentTarget.dataset.channel].attack;
+      			currentDial = 'attack';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compRelease')) {
+      			//console.log('value of compRelease on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].release);
+      			number = M[e.currentTarget.dataset.channel].release;
+      			currentDial = 'release';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compKnee')) {
+      			//console.log('value of compKnee on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].knee);
+      			number = M[e.currentTarget.dataset.channel].knee;
+      			currentDial = 'knee';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('compMakeup')) {
+      			//console.log('value of compMakeup on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].compMakeup);
+      			number = M[e.currentTarget.dataset.channel].compMakeup;
+      			currentDial = 'compMakeup';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('pan')) {
+      			//console.log('value of pan on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].pan);
+      			number = M[e.currentTarget.dataset.channel].pan;
+      			currentDial = 'pan';
+      		} else if (e.currentTarget.classList.contains('drive')) {
+      			//console.log('value of drive on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].drive);
+      			number = M[e.currentTarget.dataset.channel].drive;
+      			currentDial = 'drive';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('reverb')) {
+      			//console.log('value of reverb on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].reverb);
+      			number = M[e.currentTarget.dataset.channel].reverb;
+      			currentDial = 'reverb';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('delay')) {
+      			//console.log('value of delay on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].delay);
+      			number = M[e.currentTarget.dataset.channel].delay;
+      			currentDial = 'delay';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('playSpd')) {
+      			//console.log('value of playSpd on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].speed);
+      			number = (M[e.currentTarget.dataset.channel].speed - 0.8) * 2.5;
+      			currentDial = 'speed';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('revHPF')) {
+      			//console.log('value of revHPF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].reverbHP);
+      			number = M[e.currentTarget.dataset.channel].reverbHP;
+      			currentDial = 'reverbHP';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('revLPF')) {
+      			//console.log('value of revLPF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].reverbLP);
+      			number = M[e.currentTarget.dataset.channel].reverbLP;
+      			currentDial = 'reverbLP';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('DlayT')) {
+      			//console.log('value of DlayT on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].delayT);
+      			number = M[e.currentTarget.dataset.channel].delayT;
+      			currentDial = 'delayT';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('DlayFB')) {
+      			//console.log('value of DlayFB on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].delayFB);
+      			number = M[e.currentTarget.dataset.channel].delayFB;
+      			currentDial = 'delayFB';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('DlayHPF')) {
+      			//console.log('value of DlayHPF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].delayHP);
+      			number = M[e.currentTarget.dataset.channel].delayHP;
+      			currentDial = 'delayHP';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		} else if (e.currentTarget.classList.contains('DlayLPF')) {
+      			//console.log('value of DlayLPF on channel ' + e.currentTarget.dataset.channel +' is ' + M[e.currentTarget.dataset.channel].delayLP);
+      			number = M[e.currentTarget.dataset.channel].delayLP;
+      			currentDial = 'delayLP';
+      			//pushInteractionToDB(".EQHG", e.currentTarget.dataset.channel, e.value);
+      		};
+      	});
+
+      	$("body").mousemove(function(e) {
+      		if (dragging == true) {
+          		//calculate newNumber and update label value
+      	      currentNum = Math.round((number * 100) + (initY - e.pageY) * scaler);
+      	      if (currentNum <= dialMax && currentNum >= 0) {
+      	      	//write it to the correct variable
+      	      	//document.getElementById('label').innerHTML = Math.round(number + (initY - e.pageY) * scaler);
+      	      } else if (currentNum > dialMax) {
+      	      	 currentNum = dialMax;
+      	      	 //write it to the correct variable
+      	      	//document.getElementById('label').innerHTML = max;
+      	      } else {
+      	      	currentNum = dialMin;
+      	      	//write it to the correct variable
+      	      	//document.getElementById('label').innerHTML = min;
+      	      }
+      	      //change the image position to match
+      	      //let newY = "translateY(-" + ((Math.floor(currentNum /2)) * dialHeight) + "px)";
+      	      let newish = (Math.floor(currentNum /2)) * dialHeight;
+      	      if (newish > 1960) {
+      	      	newish = 1960;
+      	      	//alert('newish exceeded 1960');
+      	      };
+      	      let newY = "translateY(-" + newish + "px)";
+
+      	      document.getElementById(currentPicId).style.transform = newY;
+
+      	      //now set the variable
+      	      switch (currentDial) {
+      	      	case "HG":
+      	      		M[currentChan].HG = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].HFNode.gain.value = convertLinear((currentNum / 100), -20, 20); //calculate and implement the boost or cut; -20..20 range
+      				};
+      	      		break;
+      	      	case "HF":
+      	      		M[currentChan].HF = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].HFNode.frequency.value = convertLog((currentNum / 100), 4000, 20000); //calculate high frequency cutoff mapping from 0..1 to 4000..20000
+      				};
+      	      		break;
+      	      	case "HMG":
+      	      		M[currentChan].HMG = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].HMFNode.gain.value = convertLinear((currentNum / 100), -20, 20); //calculate and implement the boost or cut; -20..20 range
+      				};
+      	      		break;
+      	      	case "HMF":
+      	      		M[currentChan].HMF = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].HMFNode.frequency.value = convertLog((currentNum / 100), 1000, 6000); //calculate high frequency bandwidth mapping from 0..1 to log scale 0.0001 to 1000
+      				};
+      	      		break;
+      	      	case "HMQ":
+      	      		M[currentChan].HMQ = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].HMFNode.Q.value = convertLog((currentNum / 100), 0.0001, 10); //calculate high frequency bandwidth mapping from 0..1 to log scale 0.0001 to 1000
+      				};
+      	      		break;
+      	      	case "LMG":
+      	      		M[currentChan].LMG = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].LMFNode.gain.value = convertLinear((currentNum / 100), -20, 20); //calculate and implement the boost or cut; -20..20 range
+      				};
+      	      		break;
+      	      	case "LMF":
+      	      		M[currentChan].LMF = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].LMFNode.frequency.value = convertLog((currentNum / 100), 400, 2000); //calculate low-mid frequency cutoff mapping from 0..1 to log 40..1000
+      				};
+      	      		break;
+      	      	case "LMQ":
+      	      		M[currentChan].LMQ = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].LMFNode.Q.value = convertLog((currentNum / 100), 0.0001, 10); //calculate high frequency bandwidth mapping from 0..1 to log scale 0.0001 to 1000
+      				};
+      	      		break;
+      	      	case "LG":
+      	      		M[currentChan].LG = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].LFNode.gain.value = convertLinear((currentNum / 100), -20, 20); //calculate and implement the boost or cut; -20..20 range
+      				};
+      	      		break;
+      	      	case "LF":
+      	      		M[currentChan].LF = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					C[currentChan].LFNode.frequency.value = convertLog((currentNum / 100), 20, 700); //calculate low frequency cutoff mapping from 0..1 to log 20..700
+      				};
+      	      		break;
+      	      	case "threshold":
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					//if control at default it won't be in the processing chain, so call pause, set, then call start
+      					if 	(M[currentChan].threshold == "0") {
+      						//console.log("drive control at default so not in chain");
+      						pause();
+      						//store the value
+      						M[currentChan].threshold = currentNum / 100;
+      						play(); //the change will be applied during the play function
+      					} else {
+      						//console.log("control not at '0.5'");
+      						C[currentChan].compNode.threshold.value = convertLinear(1 - (currentNum / 100), -100, 0); //calculate threshold
+      						//and store the new value
+      						M[currentChan].threshold = currentNum / 100;
+      					};
+      				} else {
+      					M[currentChan].threshold = currentNum / 100; //store the new value
+      				}
+      	      		break;
+      	      	case "ratio":
+      	      		M[currentChan].ratio = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].compNode.ratio.value = convertLinear((currentNum / 100), 1, 20); //calculate ratio
+      				};
+      	      		break;
+      	      	case "attack":
+      	      		M[currentChan].attack = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].compNode.attack.value = convertLinear((currentNum / 100), 0, 1); //calculate attack
+      				};
+      	      		break;
+      	      	case "release":
+      	      		M[currentChan].release = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].compNode.release.value = convertLinear((currentNum / 100), 0, 1); //calculate release
+      				};
+      	      		break;
+      	      	case "knee":
+      	      		M[currentChan].knee = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].compNode.knee.value = convertLinear((currentNum / 100), 0, 40); //calculate knee
+      				};
+      	      		break;
+      	      	case "compMakeup":
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					//if control at default it won't be in the processing chain, so call pause, set, then call start
+      					if 	(M[currentChan].compMakeup == "0") {
+      						//console.log("drive control at default so not in chain");
+      						pause();
+      						//store the value
+      						M[currentChan].compMakeup = currentNum / 100;
+      						play(); //the change will be applied during the play function
+      					} else {
+      						//console.log("control not at '0.5'");
+      						C[currentChan].compMakeupNode.gain.value = convertLinear((currentNum / 100), 1, 10); //calculate makeup gain
+      						//and store the new value
+      						M[currentChan].compMakeup = (currentNum / 100);
+      					};
+      				} else {
+      					//just store the value
+      					M[currentChan].compMakeup = currentNum / 100;
+      				};
+      	      		break;
+      	      	case "pan":
+      	      		M[currentChan].pan = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].panNode.pan.value = convertLinear((currentNum / 100), -1, 1); //pan position
+      				};
+      	      		break;
+      	      	case "drive":
+      	      		//now change the web audio params
+      	      		if (playing == true) {
+      					//if control at default it won't be in the processing chain, so call pause, set, then call start
+      					if 	(M[currentChan].drive == "0") {
+      						//console.log("drive control at default so not in chain");
+      						pause();
+      						//store the value
+      						M[currentChan].drive = currentNum / 100;
+      						play(); //the change will be applied during the play function
+      					} else {
+      						//console.log("control not at '0.5'");
+      						C[currentChan].distortionNode.curve = makeDistortionCurve( (currentNum / 100) * 100 ); //Set the distortion curve
+      						//and store the new value
+      						M[currentChan].drive = (currentNum / 100);
+      					};
+      				} else {
+      					//just store the value
+      					M[currentChan].drive = e.value;
+      				};
+      	      		break;
+      	      	case "reverb":
+      	      		M[currentChan].reverb = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].reverbSendNode.gain.value = convertLinear((currentNum / 100), 0, 3); //reverb send amount
+      				};
+      	      		break;
+      	      	case "delay":
+      	      		M[currentChan].delay = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      				if (playing == true) {
+      					C[currentChan].delaySendNode.gain.value = convertLinear((currentNum / 100), 0, 0.5); //delay send amount - hacked the max value down from 1 to 0.33 so we don't get overwhelmed by the delayed signal volume
+      				};
+      	      		break;
+      	      	case "speed":
+      	      		if (playing == true) {
+      					//send new speed and old speed into the function
+      					changeSpeed((currentNum / 250) + 0.8, M[8].speed);
+      				};
+      				M[8].speed = (currentNum / 250) + 0.8; //map from 0..1 to 0.8..1.2
+      	      		break;
+      	      	case "reverbHP":
+      	      		M[currentChan].reverbHP = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedRevHPChange(currentNum / 100);
+      	      		break;
+      	      	case "reverbLP":
+      	      		M[currentChan].reverbLP = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedRevLPChange(currentNum / 100);
+      	      		break;
+      	      	case "delayT":
+      	      		M[currentChan].delayT = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedDelayTChange(currentNum / 100);
+      	      		break;
+      	      	case "delayFB":
+      	      		M[currentChan].delayFB = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedDelayFBChange(currentNum / 100);
+      	      		break;
+      	      	case "delayHP":
+      	      		M[currentChan].delayHP = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedDelHPChange(currentNum / 100);
+      	      		break;
+      	      	case "delayLP":
+      	      		M[currentChan].delayLP = currentNum / 100; //store the new value
+      	      		//now change the web audio params
+      	      		clickedDelLPChange(currentNum / 100);
+      	      		break;
+      	      }
+      	    }
+      	});
+
+      	function changePan (val) {
+      		M[currentChan].pan = val;
+      		if (playing == true) {
+      			C[currentChan].panNode.pan.value = convertLinear(val, -1, 1); //pan position
+      		};
+      	};
+
+      	$("body").mouseup(function(e) {
+      		dragging = false;
+      	});
+
+      	//a mute button was pressed
+      	$('.muteBtn').click(function(e) {
+      		//check if any track is soloed and if so find which one.
+      		if (checkSolo() != -1) { //then we need to unsolo something
+      			var check = checkSolo();
+      			//set the soloed tracks solo div back to grey
+      			$('#' + check + '.soloBtn').css({'background': '#808080'});
+      			//loop around all the tracks removing the mutes (unless thay are already muted) and resetting the M[i].solo property
+      			for (var i=0;i<numChannels; i++) {
+      				M[i].solo = false;
+      				if (M[i].mute == "false") {
+      					C[i].muteNode.gain.value = 1;
+      				};
+      			};
+      		};
+      		//now get on with the muting
+          	if (M[e.currentTarget.dataset.channel].mute == "false") {
+      			//then mute this track
+      			M[e.currentTarget.dataset.channel].mute = "true";
+      			C[e.currentTarget.dataset.channel].muteNode.gain.value = 0;
+      			//set background to orange
+      			e.currentTarget.style.background = '#ff6600';
+      		} else {
+      			//then unmute this track
+      			M[e.currentTarget.dataset.channel].mute = "false";
+      			C[e.currentTarget.dataset.channel].muteNode.gain.value = 1;
+      			//set background to grey
+      			e.currentTarget.style.background= '#808080';
+      		};
+      		//now push this interaction to the database
+      		pushInteractionToDB(".muteBtn", e.currentTarget.dataset.channel, M[e.currentTarget.dataset.channel].mute);
+      	});
+
+      	//checkSolo function returns true if any channel is soloed
+      	function checkSolo() {
+      		var search = -1;
+      		for (var i=0;i<numChannels;i++) {
+      			if (M[i].solo == true) {search = i};
+      		}
+      		return search;
+      	};
+
+      	//a solo button was pressed
+      	$('.soloBtn').click(function(e) { soloRoutine(e) });
+
+      	function soloRoutine (e) {
+          	//3 senarios could be encountered: 1) nothing soloed yet 2) current track soloed 3) another track soloed
+          	var check = checkSolo();
+      		if (check == -1 ) { //senario 1 (nothing soloed yet)
+      			//console.log('nothing soloed');
+      				//first check if the track is muted and if so unmute it (as solo should override a mute)
+      				if (M[e.currentTarget.dataset.channel].mute == "true") { //unmute it
+      					M[e.currentTarget.dataset.channel].mute = "false";
+      					C[e.currentTarget.dataset.channel].muteNode.gain.value = 1;
+      					$('#btnMute' + e.currentTarget.dataset.channel).css({'background': '#808080'});
+      				};
+      			//solo this track by...
+      			//loop around all the tracks
+      			for (var i=0; i<numChannels; i++){
+      				//check if current track is the track to be soloed
+      					if (e.currentTarget.dataset.channel == i) {
+      						M[e.currentTarget.dataset.channel].solo = true; //set solo property
+      						C[e.currentTarget.dataset.channel].muteNode.gain.value = 1; //set gain node > shouldn't be needed
+      						e.currentTarget.style.background = '#2eb82e'; //set the divs background to green
+      					} else { //if not set the volume to zero
+      						C[i].muteNode.gain.value = 0;
+      					};
+      			};
+      		} else if (check == e.currentTarget.dataset.channel) { //senario 2 (current track soloed)
+      			//console.log('we need to unsolo the current track');
+      			//unsolo this track
+      			M[e.currentTarget.dataset.channel].solo = false; //reset solo property
+      			e.currentTarget.style.background= '#808080'; //set the divs colour back to grey
+      			//loop around and set all (unmuted) tracks gain nodes to 1
+      			for (var i=0; i<numChannels; i++){
+      				if (M[i].mute == "false") {
+      					C[i].muteNode.gain.value = 1;
+      				};
+      			};
+      		} else { //senario 3 (another track was soloed)
+      			//console.log('another track was soloed');
+      			//unsolo the soloed track
+      			M[check].solo = false; //reset solo property
+      			C[check].muteNode.gain.value = 1;//reset mute node
+      			$('#btnSolo' + check).css({'background': '#808080'}); //set the other tracks divs colour back to grey
+      			//solo this track
+      			//first check if the track is muted and if so unmute it (as solo should override a mute)
+      				if (M[e.currentTarget.dataset.channel].mute == "true") { //unmute it
+      					M[e.currentTarget.dataset.channel].mute = "false";
+      					C[e.currentTarget.dataset.channel].muteNode.gain.value = 1;
+      					$('#btnMute' + e.currentTarget.dataset.channel).css({'background': '#808080'});
+      				};
+      			//loop around all the tracks
+      			for (var i=0; i<numChannels; i++){
+      				//check if current track is the track to be soloed
+      				if (e.currentTarget.dataset.channel == i) {
+      					M[e.currentTarget.dataset.channel].solo = true; //set solo property
+      					C[e.currentTarget.dataset.channel].muteNode.gain.value = 1; //set gain node > shouldn't be needed
+      					e.currentTarget.style.background = '#2eb82e'; //set the divs background to green
+      				} else { //if not set the volume to zero
+      					C[i].muteNode.gain.value = 0;
+      				};
+      			};
+      		};
+      		//now push this interaction to the database
+      		pushInteractionToDB(".soloBtn", e.currentTarget.dataset.channel, M[e.currentTarget.dataset.channel].solo);
+      	};
+
+      	//load page function
+      	function loadPage() {
+      		//sort out the mixers width
+      		theWidth = numChannels * 134 + 138;
+      		$('#mixer').css("width", theWidth);
+      	};
+
+      	//an EQ '?' button was pressed
+      	$('.EQQ').click(function(e) {
+      		//console.log('EQ ? pressed on ' + e.currentTarget.id);
+      		if (playing == true) {pause()}; //pause any playing music so the user can engage with the new content
+      		pushInteractionToDB(".EQQ", e.currentTarget.dataset.channel, 'N/A');
+      		openLZ("/learningzone/3"); //open learning zone and feed it param 3 so it can load video on EQs
+      	});
+
+      	//a comp '?' button was pressed
+      	$('.compQ').click(function(e) {
+      		//console.log('comp ? pressed on ' + e.currentTarget.id);
+      		if (playing == true) {pause()}; //pause any playing music so the user can engage with the new content
+      		pushInteractionToDB(".compQ", e.currentTarget.dataset.channel, 'N/A');
+      		openLZ("/learningzone/4"); //open learning zone and feed it param 4 so it can load video on compressors
+      	});
+
+      	//an 'other?' button clicked
+      	$('.otherQ').click(function(e) {
+      		if (playing == true) {pause()}; //pause any playing music so the user can engage with the new content
+      		pushInteractionToDB(".otherQ", e.currentTarget.dataset.channel, 'N/A');
+      		openLZ("/learningzone/2"); //open learning zone and feed it param 2 so it can load video on Effects
+      	});
+
+      	//the master 'Q' button was pressed
+      	$('.MasterQ').click(function(){
+      		if (playing == true) {pause()}; //pause any playing music so the user can engage with the new content
+      		pushInteractionToDB(".MasterQ", "8", 'N/A');
+      		openLZ("/learningzone/5"); //open learning zone and feed it param 5 so it can load video on the master channel
+      	});
+
+      	function openLZ (url){
+      		var a = document.createElement('a');
+      		a.href=url;
+      		a.target = '_blank';
+      		document.body.appendChild(a);
+      		a.click();
+      	};
+
+      	//an 'upload' button clicked
+      	$('.upload').click(function(e) {
+      		if (playing == true) {pause()}; //pause any playing music so the user can engage with the new content
+      		pushInteractionToDB(".upload", e.currentTarget.dataset.channel, 'N/A');
+      		if (loggedIn == true) {
+      			//write to the modal stating what channel we are going to upload stems onto
+      			$('#myModal_upload').find('h2').html('Upload a new stem to channel ' + (Number(e.currentTarget.dataset.channel) + 1));
+      			//set the hidden field 'track number' based on what channel the modal was opened from
+      			$('input[name="trackNumber"]').val(Number(e.currentTarget.dataset.channel) + 1); //set the track number
+      			//launch upload modal
+      			$('#myModal_upload').css({'display': 'block'});
+      		} else {
+      			alert("You need to be logged in before you can contribute stems.\n\nUse the login link in the top right corner of this page");
+      		};
+      	});
+
+      //trasport buttons
+
+      	//play button was pressed
+      	$('#playBtn').click(function(e) {
+      		if (playing == false) {
+      			play();
+      		} else {
+      			alert('already playing!');
+      		}
+      		//push this interaction to the database
+      		pushInteractionToDB("playBtn", 'N/A', 'N/A');
+      	});
+
+      	//pause button was pressed
+      	$('#pauseBtn').click(function(e) {
+      		pause();
+      		//push this interaction to the database
+      		pushInteractionToDB("pauseBtn", 'N/A', 'N/A');
+      	});
+
+      	//stop button was pressed
+      	$('#stopBtn').click(function(e) {
+      		stop();
+      		//push this interaction to the database
+      		pushInteractionToDB("stopBtn", 'N/A', 'N/A');
+      	});
+
+      	//reset button was pressed
+      	$('#resetBtn').click(function() {
+      		//reset M to original values
+      		mixToVariables(theMix); //will reset M object to it's original values (before the user changed away from them)
+      		//put these into the web audio nodes
+      		if (playing == true) {
+      			setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+      		};
+      		//put these into the interface control positions
+      		setInterface();
+      	});
+
+      	//flatten button was pressed
+      	$('#flattenBtn').click(function(e) {
+      		//reset the control values stored in memory to 'flat mixer'
+      		for (var i=0;i<numChannels; i++) {
+      			M[i].stem = "default";
+      			M[i].volume = 0.7;
+      			M[i].mute = "false";
+      			M[i].solo = false;
+      			M[i].eqActive = true; //EQ (biquad filter) settings
+      			M[i].HG = 0.5; //high gain
+      			M[i].HF = 0.5; //high frequency
+      			M[i].HQ = 0.8; //high Q  //range -inf..inf with default 1
+      			M[i].HType = "peaking"; //was lowpass
+      			M[i].HMF = 0.5; //peaking   //frequency in HZ, default is 350Hz (but I should make this 2000)
+      			M[i].HMG = 0.5; //peaking (no boost or cut to begin with) -20..20 range
+      			M[i].HMQ = 0.8; //peaking  //range -inf..inf with default 1
+      			M[i].HMType = "peaking";
+      			M[i].LMF = 0.5; //peaking  //frequency in HZ, default is 350Hz (but I should make this 200)
+      			M[i].LMG = 0.5; //peaking (no boost or cut to begin with) -20..20 range
+      			M[i].LMQ = 0.8; //peaking  //range -inf..inf with default 1
+      			M[i].LMType = "peaking";
+      			M[i].LType = "peaking"; //was highpass
+      			M[i].LG = 0.5; //low gain
+      			M[i].LF = 0.5; //low freq
+      			M[i].LQ = 0.8; //low Q  //range -inf..inf with default 1
+      			M[i].compActive = true;
+      			M[i].ratio = 0.6; //range 1..20 with default 12
+      			M[i].threshold = 0; //range -100..0 with default -24 (but I want it to be 0 thus no compression)
+      			M[i].knee = 0.75; //range 0..40 with default 30
+      			M[i].attack = 0.003; //range 0..1 with default 0.003
+      			M[i].release = 0.25; //range 0..1 with default 0.25
+      			M[i].compMakeup = 0; //used to create a make-up gain control
+      			M[i].driveActive = true;
+      			M[i].drive = 0; //distortion (waveshaper) settings
+      			M[i].driveTrim = 1; //waveshaper trim amount for gain node
+      			M[i].pan = 0.5; //pan (stereoPanner) settings
+      			M[i].reverbActive = true;
+      			M[i].reverb = 0; //reverb (convolver) send amount
+      			M[i].delayActive = true;
+      			M[i].delay = 0; //delay send amount
+      		};
+      		//and the master channel too
+      		M[8].revType = 0.6; //which is hall
+      		M[8].reverbHP = 0;//reverb HP
+      		M[8].reverbLP = 1; //reverb LP
+      		M[8].delayT = 0.5; //delay time between 0..1 seconds
+      		M[8].delayFB = 0; //delay feedback
+      		M[8].delayHP = 0; //delay HP
+      		M[8].delayLP = 1; //delay LP
+      		M[8].speed = 1;
+
+      		//now reset the webaudio elements to match these stored values
+      		setWebAudioParams();
+      		//adjust the interface controls accordingly
+      		setInterface ();
+      		//now check if the samples need reset
+      		for (var i=0;i<numChannels;i++) {
+      			//check if the current sample is the first in the list
+      			if (selectedStems[i] != 0) {
+      				//hide the transport buttons and show the loading message
+      				document.getElementById('playBtn').style.display = 'none';
+      				document.getElementById('stopBtn').style.display = 'none';
+      				document.getElementById('loadingMessage').style.display = 'block';
+      				//change the selection box text to match (selecting via index to do this)
+      				//$(".sampSelect#" + i + " :nth-child(1)").prop('selected', true); //nth child(1) gives us the first list item
+      				$("#sampleSelect" + i).val(0); //switch to default
+      				//change the stem
+      				if (playing == true) {
+      					pause();
+      					waiting = true;
+      					};
+      				tracksLoaded = tracksLoaded - 1;
+      				//we can safely load a new sample
+      				loadSound(trackURLs[i][0], i);
+      				//now store the name of the newly selected stem
+      				selectedStems[i] = 0; //the selected option;
+      				};
+      		};
+      		//push this interaction to the database
+      		pushInteractionToDB("resetBtn", 'N/A', 'N/A');
+      	});
+
+      	//save button was pressed
+      	$('#saveBtn').click(function(e) {
+      		//push this interaction to the database
+      		pushInteractionToDB("saveBtn", 'N/A', 'N/A');
+      		//now push all the interface settings into the database
+      		pushSavedState ();
+      	});
+
+      	//check button was pressed
+      	$('#checkBtn').click(function(e) {
+      		if (checking == false) { //set up checking
+      			checking = true;
+      			//flash the checking button
+      			$('#checkBtn').css({'animation': 'pulse 1s infinite'});
+      			//blank out all the controls
+      			$('#blocker').css({'display': 'block'});
+      			//clone the whole M (mix) object to store current mix settings
+      			userMix = JSON.parse(JSON.stringify(M));
+      			//now reset M to original values
+      			mixToVariables(theMix); //will reset M object to it's original values (before the user changed away from them)
+          		//put these into the web audio nodes
+          		if (playing == true) {
+          			setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+          		} else {
+          			play();
+          		};
+          		//put these into the interface control positions
+          		setInterface();
+          		//put circles around changed controls
+          		compareMixes (M, userMix);
+      		} else { //turn off checking
+      			checking = false;
+      			//turn off checking buttons animation
+      			$('#checkBtn').css({'animation': 'none'});
+      			//remove 'blocker' overlay so people can use controls again
+      			$('#blocker').css({'display': 'none'});
+      			//copy userMix back into M (mix) object
+      			M = JSON.parse(JSON.stringify(userMix));
+      			//put these into the web audio nodes
+          		if (playing == true) {
+          			setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+          		};
+          		//put these into the interface control positions
+          		setInterface();
+          		//check if we have to colour any soloed buttons
+          		var check = checkSolo();
+      			if (check != -1) { //then we have to solo a track
+      				//make its button green
+      				$('#btnSolo' + check).css({'background': '#2eb82e'});
+      				console.log("changed the button colour using check: " + check)
+      			}
+          		//get rid of the userMix memory
+          		userMix.length = 0;
+          		//turn off circles around changed controls
+          		$('.border').css('display', 'none'); //if so show yellow box
+      		}
+      	});
+
+      	//bottom menu item clicks
+      	$('#stemInfo').click(function () {
+      		var a = document.createElement('a');
+      		a.href='/licenses/' + songID;
+      		a.target = '_blank';
+      		document.body.appendChild(a);
+      		a.click();
+      	});
+
+      	$('#downloadStems').click(function () {
+      		if ('<%= theDownloadPath[0].downloadPath %>' != "") {
+      			if (confirm('This can be quite a big download and may take some time.\nDo you still want to proceed?') == true) {
+      				window.open('//remixportal.s3-eu-west-1.amazonaws.com' + '<%= theDownloadPath[0].downloadPath %>')
+      			} else {
+      				alert('okay, no bother');
+      			};
+      		} else {
+      			alert("this song is not available for download at the moment");
+      		};
+      	});
+
+      	//next remix interactions
+      	$('#arrowL').click(function () {
+      		if (mixIDset.length != 0) {
+      			if ((mixLoopPos - 1) >= 0) {
+      				mixLoopPos = mixLoopPos - 1;
+      			} else {
+      				mixLoopPos = mixIDset.length - 1;
+      			};
+      			console.log("the mix loop position is " + mixLoopPos);
+      			mixID = mixIDset[mixLoopPos].id;
+      				//console.log('mixLoopPos is now: ' + mixLoopPos);
+      			//now set the mix using the 'id' found at this mixLoop position
+      				//console.log('about to set mix: ' + mixIDset[mixLoopPos].id);
+      			//now feed this 'id' into the pullSavedState function to set the mixer to the new mix
+      			console.log("about to pull the saved state");
+      			pullSavedState(songID, mixIDset[mixLoopPos].id);
+      		};
+      	});
+
+
+      	$('#arrowR').click(function () {
+      		if (mixIDset.length != 0) {
+      			//increment the mixLoopPos variable
+      			if ((mixLoopPos + 1) < mixIDset.length) {
+      				mixLoopPos = mixLoopPos + 1;
+      			} else {
+      				mixLoopPos = 0;
+      			};
+      			console.log("the mix loop position is " + mixLoopPos);
+      			mixID = mixIDset[mixLoopPos].id;
+      				//console.log('mixLoopPos is now: ' + mixLoopPos);
+      			//now set the mix using the 'id' found at this mixLoop position
+      				//console.log('about to set mix: ' + mixIDset[mixLoopPos].id);
+      			//now feed this 'id' into the pullSavedState function to set the mixer to the new mix
+      			console.log("about to pull the saved state");
+      			pullSavedState(songID, mixIDset[mixLoopPos].id);
+      		};
+      	});
+
+      	//close the post-save modal
+      	$('.modal-close').click(function () {
+      		$('.modal').css({'display': 'none'});
+      	});
+
+      	// When the user clicks anywhere outside of the modal, close it
+      	window.onclick = function(event) {
+      	    if (event.target.id == 'myModal_share') {
+      	    	$('#myModal_share').css({'display': 'none'});
+      	    };
+      	};
+
+      	//when the share link is clicked
+      	$('#shareLink').click(function(){
+      		pushSavedState ();
+      	});
+
+      	//eco view button pressed
+      	$('#ecoBtn').click(function(){
+      		if (ecoView == false) {
+      			ecoView = true;
+      			//hide meters
+      			for (var i=0; i<numChannels;i++) {
+      				$('#meter' + i).hide();
+      			};
+      		} else {
+      			ecoView = false
+      			//show meters
+      			for (var i=0; i<numChannels;i++) {
+      				$('#meter' + i).show();
+      			};
+      		};
+
+      	});
+
+      	//STEM UPLOAD FORM HANDLING
+      		//set the 'value' attributes passed through the hidden form fields
+        	$('input[name="savePath"]').val(uploadPath); //set the save path
+        	$('input[name="songId"]').val(songID); //set the songID
+
+        	function checkform () {
+        		if (document.getElementsByName('theMP3')[0].value == "") {
+      	      console.log('theMP3 file is null');
+      	      return false;
+      	    } else if (document.getElementsByName('copyright_check')[0].checked != true) {
+      	      console.log('copyright check is not Y');
+      	      return false;
+      	    } else if (document.getElementsByName('stem_label')[0].value == "") {
+      	      console.log('stem label is null');
+      	      return false;
+      	    } else if (document.getElementsByName('savePath')[0].value == "foo") {
+      	      console.log('savePath is foo');
+      	      return false;
+      	    } else {
+      	    	// console.log(document.getElementsByName('copyright_check')[0].checked);
+      	    	// console.log(document.getElementsByName('copyright_check')[1].checked);
+      	    	console.log('form checks passed');
+      	      	return true;
+      	    };
+        	};
+
+      	//sort the layout of the page when it loads
+      	loadPage();
+
+      	/*************** DATABASE FUNCTIONS *******************/
+
+      	function pushInteractionToDB (element, channel, value) {
+      		if (settingInterface == false) {
+      			if (loggedIn == true) { //only capture data when the user is logged in
+      		        $.ajax({
+      		        	type: 'POST',
+      		        	url: '/pushInteraction',
+      		        	data: {"user" : ourUser.display_name, "uid" : ourUser.UID, "song" : songID, "element" : element, "channel" : channel, "value" : value},
+      		        	success: function () {
+      		        		//console.log('ajax function worked - pushed interaction to DB');
+      		        	},
+      		        	error: function () {
+      		        		console.log('ajax function failed - could not push interaction to DB');
+      		        	}
+      		        });
+      	    	};
+      	    };
+      	};
+
+      	function pullSavedState(songID, mixID) {
+      		$.ajax({
+      	        	type: 'GET',
+      	        	url: '/pullSavedVersion/' + songID + '/' + mixID,
+      	        	success: function (result) {
+      	        		console.log("we got the saved state");
+      	        		theMix = JSON.parse(result.data);
+      	        		//console.log(theMix);
+      	        		mixToVariables(theMix); //now use the mix parameters
+      	        		//put these into the web audio nodes
+      	        		if (playing == true) {
+      	        			setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+      	        		};
+      	        		//put these into the interface control positions
+      	        		setInterface();
+      	        		//write the name of the remixer to the remixerInfo div (within the songInfo pannel)
+      	        		if (theMix.userId == "FlatMix") {
+      	        			$('#remixerInfo').html('starting from a flat mix');
+      	        		} else {
+      	        			$('#remixerInfo').html('mixed by ' + theMix.userId);
+      	        		}
+      	        		//if the comments pannel is visible update the comments
+      					if ($('#theComments').css("margin-right") == '0px') {
+      						getQuestion();
+      						getIDsForComments(songID, theMix.userId);
+      					};
+      	        	},
+      	        	error: function () {
+      	        		console.log('failed to pull saved mix from the database');
+      	        	}
+      	    });
+      	};
+
+      	function getMixIDs(songID) {
+      		$.ajax({
+      	        	type: 'GET',
+      	        	url: '/getMixIDs/' + songID,
+      	        	success: function (result) {
+      	        		// console.log(result.data[0].id);
+      	        		if (result.data.length < 1) {
+      	        			pullSavedState(songID, mixID);
+      	        		};
+      	        		mixIDset = result.data;
+      	        		//console.log(mixIDset);
+      	        		//if we have other mixes show the arrows
+      	        		if (result.data.length > 0) {
+      	        			$('#noRemixesLbl').css({'display':'none'});
+      	        		}
+      	        		if (result.data.length > 1) {
+      	        			$('#mixSelectControls').css({'display':'block'});
+      	        		}
+      	        		//if this is the default mix move onto one of the remixes
+      	        		if (mixID == 1 && result.data.length > 0) {
+      	        			$('#arrowR').click();
+      	        		};
+      	        	},
+      	        	error: function () {
+      	        		console.log('failed to pull saved mix from the database');
+      	        	}
+      	    });
+      	};
+
+      	function pushSavedState () {
+      		if (loggedIn == true) { //only save mix if the user is logged in
+      	        $.ajax({
+      	        	type: 'POST',
+      	        	url: '/pushSavedVersion',
+      	        	data: { //add song and user
+      	        		"songId" : songID, "userId" : ourUser.display_name, "uid": ourUser.UID, "T1Stem" : selectedStems[0],"M0vol" : M[0].volume, "M0mute" : M[0].mute, "M0solo" : M[0].solo, "M0eqActive" : M[0].eqActive, "M0HF" : M[0].HF, "M0HG" : M[0].HG, "M0HQ" : M[0].HQ, "M0HType" : M[0].HType, "M0HMF" : M[0].HMF, "M0HMG" : M[0].HMG, "M0HMQ" : M[0].HMQ, "M0HMType" : M[0].HMType, "M0LMF" : M[0].LMF, "M0LMG" : M[0].LMG, "M0LMQ" : M[0].LMQ, "M0LMType" : M[0].LMType, "M0LType" : M[0].LType, "M0LG" : M[0].LG, "M0LF" : M[0].LF, "M0LQ" : M[0].LQ, "M0compActive" : M[0].compActive, "M0ratio" : M[0].ratio, "M0threshold" : M[0].threshold, "M0knee" : M[0].knee, "M0attack" : M[0].attack, "M0release" : M[0].release, "M0compMakeup" : M[0].compMakeup, "M0driveActive" : M[0].driveActive, "M0drive" : M[0].drive, "M0driveTrim" : M[0].driveTrim, "M0pan" : M[0].pan, "M0reverbActive" : M[0].reverbActive, "M0reverb" : M[0].reverb, "M0delayActive" : M[0].delayActive, "M0delay" : M[0].delay, "T2Stem" : selectedStems[1], "M1vol" : M[1].volume, "M1mute" : M[1].mute, "M1solo" : M[1].solo, "M1eqActive" : M[1].eqActive, "M1HF" : M[1].HF,  "M1HG" : M[1].HG, "M1HQ" : M[1].HQ, "M1HType" : M[1].HType, "M1HMF" : M[1].HMF, "M1HMG" : M[1].HMG, "M1HMQ" : M[1].HMQ, "M1HMType" : M[1].HMType, "M1LMF" : M[1].LMF, "M1LMG" : M[1].LMG, "M1LMQ" : M[1].LMQ, "M1LMType" : M[1].LMType, "M1LType" : M[1].LType, "M1LG" : M[1].LG, "M1LF" : M[1].LF, "M1LQ" : M[1].LQ, "M1compActive" : M[1].compActive, "M1ratio" : M[1].ratio, "M1threshold" : M[1].threshold, "M1knee" : M[1].knee, "M1attack" : M[1].attack, "M1release" : M[1].release, "M1compMakeup" : M[1].compMakeup, "M1driveActive" : M[1].driveActive, "M1drive" : M[1].drive, "M1driveTrim" : M[1].driveTrim, "M1pan" : M[1].pan, "M1reverbActive" : M[1].reverbActive, "M1reverb" : M[1].reverb, "M1delayActive" : M[1].delayActive, "M1delay" : M[1].delay, "T3Stem" : selectedStems[2], "M2vol" : M[2].volume, "M2mute" : M[2].mute, "M2solo" : M[2].solo, "M2eqActive" : M[2].eqActive, "M2HF" : M[2].HF,  "M2HG" : M[2].HG, "M2HQ" : M[2].HQ, "M2HType" : M[2].HType, "M2HMF" : M[2].HMF, "M2HMG" : M[2].HMG, "M2HMQ" : M[2].HMQ, "M2HMType" : M[2].HMType, "M2LMF" : M[2].LMF, "M2LMG" : M[2].LMG, "M2LMQ" : M[2].LMQ, "M2LMType" : M[2].LMType, "M2LType" : M[2].LType, "M2LG" : M[2].LG, "M2LF" : M[2].LF, "M2LQ" : M[2].LQ, "M2compActive" : M[2].compActive, "M2ratio" : M[2].ratio, "M2threshold" : M[2].threshold, "M2knee" : M[2].knee, "M2attack" : M[2].attack, "M2release" : M[2].release, "M2compMakeup" : M[2].compMakeup, "M2driveActive" : M[2].driveActive, "M2drive" : M[2].drive, "M2driveTrim" : M[2].driveTrim, "M2pan" : M[2].pan, "M2reverbActive" : M[2].reverbActive, "M2reverb" : M[2].reverb, "M2delayActive" : M[2].delayActive, "M2delay" : M[2].delay, "T4Stem" : selectedStems[3], "M3vol" : M[3].volume, "M3mute" : M[3].mute, "M3solo" : M[3].solo, "M3eqActive" : M[3].eqActive, "M3HF" : M[3].HF,  "M3HG" : M[3].HG, "M3HQ" : M[3].HQ, "M3HType" : M[3].HType, "M3HMF" : M[3].HMF, "M3HMG" : M[3].HMG, "M3HMQ" : M[3].HMQ, "M3HMType" : M[3].HMType, "M3LMF" : M[3].LMF, "M3LMG" : M[3].LMG, "M3LMQ" : M[3].LMQ, "M3LMType" : M[3].LMType, "M3LType" : M[3].LType, "M3LG" : M[3].LG, "M3LF" : M[3].LF, "M3LQ" : M[3].LQ, "M3compActive" : M[3].compActive, "M3ratio" : M[3].ratio, "M3threshold" : M[3].threshold, "M3knee" : M[3].knee, "M3attack" : M[3].attack, "M3release" : M[3].release, "M3compMakeup" : M[3].compMakeup, "M3driveActive" : M[3].driveActive, "M3drive" : M[3].drive, "M3driveTrim" : M[3].driveTrim, "M3pan" : M[3].pan, "M3reverbActive" : M[3].reverbActive, "M3reverb" : M[3].reverb, "M3delayActive" : M[3].delayActive, "M3delay" : M[3].delay, "T5Stem" : selectedStems[4], "M4vol" : M[4].volume, "M4mute" : M[4].mute, "M4solo" : M[4].solo, "M4eqActive" : M[4].eqActive, "M4HF" : M[4].HF,  "M4HG" : M[4].HG, "M4HQ" : M[4].HQ, "M4HType" : M[4].HType, "M4HMF" : M[4].HMF, "M4HMG" : M[4].HMG, "M4HMQ" : M[4].HMQ, "M4HMType" : M[4].HMType, "M4LMF" : M[4].LMF, "M4LMG" : M[4].LMG, "M4LMQ" : M[4].LMQ, "M4LMType" : M[4].LMType, "M4LType" : M[4].LType, "M4LG" : M[4].LG, "M4LF" : M[4].LF, "M4LQ" : M[4].LQ, "M4compActive" : M[4].compActive, "M4ratio" : M[4].ratio, "M4threshold" : M[4].threshold, "M4knee" : M[4].knee, "M4attack" : M[4].attack, "M4release" : M[4].release, "M4compMakeup" : M[4].compMakeup, "M4driveActive" : M[4].driveActive, "M4drive" : M[4].drive, "M4driveTrim" : M[4].driveTrim, "M4pan" : M[4].pan, "M4reverbActive" : M[4].reverbActive, "M4reverb" : M[4].reverb, "M4delayActive" : M[4].delayActive, "M4delay" : M[4].delay, "T6Stem" : selectedStems[5], "M5vol" : M[5].volume, "M5mute" : M[5].mute, "M5solo" : M[5].solo, "M5eqActive" : M[5].eqActive, "M5HF" : M[5].HF,  "M5HG" : M[5].HG, "M5HQ" : M[5].HQ, "M5HType" : M[5].HType, "M5HMF" : M[5].HMF, "M5HMG" : M[5].HMG, "M5HMQ" : M[5].HMQ, "M5HMType" : M[5].HMType, "M5LMF" : M[5].LMF, "M5LMG" : M[5].LMG, "M5LMQ" : M[5].LMQ, "M5LMType" : M[5].LMType, "M5LType" : M[5].LType, "M5LG" : M[5].LG, "M5LF" : M[5].LF, "M5LQ" : M[5].LQ, "M5compActive" : M[5].compActive, "M5ratio" : M[5].ratio, "M5threshold" : M[5].threshold, "M5knee" : M[5].knee, "M5attack" : M[5].attack, "M5release" : M[5].release, "M5compMakeup" : M[5].compMakeup, "M5driveActive" : M[5].driveActive, "M5drive" : M[5].drive, "M5driveTrim" : M[5].driveTrim, "M5pan" : M[5].pan, "M5reverbActive" : M[5].reverbActive, "M5reverb" : M[5].reverb, "M5delayActive" : M[5].delayActive, "M5delay" : M[5].delay, "T7Stem" : selectedStems[6], "M6vol" : M[6].volume, "M6mute" : M[6].mute, "M6solo" : M[6].solo, "M6eqActive" : M[6].eqActive, "M6HF" : M[6].HF,  "M6HG" : M[6].HG, "M6HQ" : M[6].HQ, "M6HType" : M[6].HType, "M6HMF" : M[6].HMF, "M6HMG" : M[6].HMG, "M6HMQ" : M[6].HMQ, "M6HMType" : M[6].HMType, "M6LMF" : M[6].LMF, "M6LMG" : M[6].LMG, "M6LMQ" : M[6].LMQ, "M6LMType" : M[6].LMType, "M6LType" : M[6].LType, "M6LG" : M[6].LG, "M6LF" : M[6].LF, "M6LQ" : M[6].LQ, "M6compActive" : M[6].compActive, "M6ratio" : M[6].ratio, "M6threshold" : M[6].threshold, "M6knee" : M[6].knee, "M6attack" : M[6].attack, "M6release" : M[6].release, "M6compMakeup" : M[6].compMakeup, "M6driveActive" : M[6].driveActive, "M6drive" : M[6].drive, "M6driveTrim" : M[6].driveTrim, "M6pan" : M[6].pan, "M6reverbActive" : M[6].reverbActive, "M6reverb" : M[6].reverb, "M6delayActive" : M[6].delayActive, "M6delay" : M[6].delay, "T8Stem" : selectedStems[7], "M7vol" : M[7].volume, "M7mute" : M[7].mute, "M7solo" : M[7].solo, "M7eqActive" : M[7].eqActive, "M7HF" : M[7].HF,  "M7HG" : M[7].HG, "M7HQ" : M[7].HQ, "M7HType" : M[7].HType, "M7HMF" : M[7].HMF, "M7HMG" : M[7].HMG, "M7HMQ" : M[7].HMQ, "M7HMType" : M[7].HMType, "M7LMF" : M[7].LMF, "M7LMG" : M[7].LMG, "M7LMQ" : M[7].LMQ, "M7LMType" : M[7].LMType, "M7LType" : M[7].LType, "M7LG" : M[7].LG, "M7LF" : M[7].LF, "M7LQ" : M[7].LQ, "M7compActive" : M[7].compActive, "M7ratio" : M[7].ratio, "M7threshold" : M[7].threshold, "M7knee" : M[7].knee, "M7attack" : M[7].attack, "M7release" : M[7].release, "M7compMakeup" : M[7].compMakeup, "M7driveActive" : M[7].driveActive, "M7drive" : M[7].drive, "M7driveTrim" : M[7].driveTrim, "M7pan" : M[7].pan, "M7reverbActive" : M[7].reverbActive, "M7reverb" : M[7].reverb, "M7delayActive" : M[7].delayActive, "M7delay" : M[7].delay, "M8revType" : M[8].revType, "M8reverbHP" : M[8].reverbHP, "M8reverbLP" : M[8].reverbLP, "M8delayT" : M[8].delayT, "M8delayFB" : M[8].delayFB, "M8delayHP" : M[8].delayHP, "M8delayLP" : M[8].delayLP, "M8speed" : M[8].speed
+      	        	},
+      	        	success: function (result) {
+      	        		console.log('mix was saved to the database with ID ' + result.data);
+      	        		mixID = result.data; //I put the new insert ID into mix ID variable
+      	        		//change the data-href for the facebook share tag to include this new ID
+      	        		var shareURL = "http://remixportal.co.uk/mixer/" + songID + "/" + mixID;
+      	        		$("#shareToFB").attr('data-href', shareURL);
+      	        		FB.XFBML.parse(); //this updates the facebook share parameters using the data-href value
+
+      	        		//set up the Twitter share parameters
+      	        		var title = 'Check out my remix of ' + songTitle + ' on RemixPortal.co.uk';
+      	        		// clear out the <a> tag that's currently there...probably don't really need this since you're replacing whatever is in there already.
+      					  $('#shareToTwit').html('&nbsp;');
+      					  $('#shareToTwit').html('<a href="https://twitter.com/share" class="twitter-share-button" data-url="' + shareURL +'" data-size="large" data-hashtags="remixportal" data-text="' + title + '" data-count="none">Tweet</a>');
+      					twttr.widgets.load();
+
+      					//set up Reddit share parameters
+      					var shareRedditURL = "//www.reddit.com/submit?url=" + shareURL;
+      					var shareRedditAnchor = "<a href=" + shareRedditURL + " target='_blank'> <img src='//www.redditstatic.com/spreddit6.gif' alt='submit to reddit' border='0' /> </a>";
+      					$('#shareToReddit').html('&nbsp;');
+      					$('#shareToReddit').html(shareRedditAnchor);
+
+      					//set the share modale URL
+      					$('#shareIt').html('share URL: ' + shareURL);
+
+      	        		//open a modal and ask the user if they would like to share
+      					$('#myModal_share').css({'display': 'block'});
+
+
+      	        	},
+      	        	error: function () {
+      	        		console.log('ajax function failed - could not save mix to database');
+      	        	}
+      	        });
+          	} else {
+          		alert('You need to be logged in before you can save and share your remix.\n\nUse the login link in the top right corner of this page');
+          	};
+      	};
+    </script>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <!-- check for mobile script -->
+    <script src="/resources/isMobile.js"></script>
+
+    <script>
+      (function(d, s, id) {
+        var js,
+          fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src =
+          "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.9&appId=205209920005459";
+        fjs.parentNode.insertBefore(js, fjs);
+      })(document, "script", "facebook-jssdk");
+    </script>
+  </body>
+</html>

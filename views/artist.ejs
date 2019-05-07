@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="artistZone">
+      <span
+        style="font-size: 24px; font-weight: bolder; text-decoration: underline;"
+        ><%= theData[0].artist %></span
+      >
+      <br />
+
+      <% if (theData[0].banner != null) { %>
+      <img
+        id="artistPic"
+        src="<%=theData[0].banner%>"
+        alt="Artist_Picture"
+        style="width: 90%; max-width:500px;"
+      />
+      <% } %>
+
+      <p id="blurb"><%- theData[0].about %></p>
+
+      <div id="links">
+        <p>
+          <strong> You can follow <%= theData[0].artist %> at:</strong
+          ><br /><br />
+          <% if (theData[0].link1 != "") { %>
+          <a href="<%= theData[0].link1 %>" target="_blank"
+            ><%= theData[0].link1 %></a
+          ><br /><br />
+          <% } %> <% if (theData[0].link2 != "") { %>
+          <a href="<%= theData[0].link2 %>" target="_blank"
+            ><%- theData[0].link2 %></a
+          ><br /><br />
+          <% } %> <% if (theData[0].link3 != "") { %>
+          <a href="<%= theData[0].link3 %>" target="_blank"
+            ><%- theData[0].link3 %></a
+          ><br /><br />
+          <% } %> <% if (theData[0].link4 != "") { %>
+          <a href="<%= theData[0].link4 %>" target="_blank"
+            ><%- theData[0].link4 %></a
+          ><br /><br />
+          <% } %> <% if (theData[0].link5 != "") { %>
+          <a href="<%= theData[0].link5 %>" target="_blank"
+            ><%- theData[0].link5 %></a
+          ><br /><br />
+          <% } %> <% if (theData[0].link6 != "") { %>
+          <a href="<%= theData[0].link6 %>" target="_blank"
+            ><%- theData[0].link6 %></a
+          ><br />
+          <% } %>
+        </p>
+      </div>
+    </div>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <script type="text/javascript">
+      if (
+        "<%=theData[0].link1%>" == "" &&
+        "<%=theData[0].link2%>" == "" &&
+        "<%=theData[0].link3%>" == "" &&
+        "<%=theData[0].link4%>" == "" &&
+        "<%=theData[0].link5%>" == "" &&
+        "<%=theData[0].link6%>" == ""
+      ) {
+        $("#links").html("");
+      }
+    </script>
+  </body>
+</html>

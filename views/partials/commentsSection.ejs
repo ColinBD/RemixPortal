@@ -1,0 +1,917 @@
+<div id="commentsWrapper">
+  <div id="toggleComments">
+    <div id="commentsQ">?</div>
+    <label>show/hide comments - click me!</label>
+  </div>
+  <div id="theComments">
+    <!-- will be filled dynamically when the div is clicked to open the comments section -->
+  </div>
+</div>
+
+<script type="text/javascript">
+  var showingComments = false;
+  var addingSuggestion = false;
+  var auditioning = "none";
+
+  var restOfStarsForm =
+    "<div class='stars'><input type='radio' name='star' class='star-1' id='star-1' /><label class='star-1' for='star-1'>1</label><input type='radio' name='star' class='star-2' id='star-2' /><label class='star-2' for='star-2'>2</label><input type='radio' name='star' class='star-3' id='star-3' /><label class='star-3' for='star-3'>3</label><input type='radio' name='star' class='star-4' id='star-4' /><label class='star-4' for='star-4'>4</label><input type='radio' name='star' class='star-5' id='star-5' /><label class='star-5' for='star-5'>5</label><span></span></div></form>";
+
+  $("#toggleComments").click(function() {
+    //check if everything has loaded
+    if (showingComments == false) {
+      showingComments = true;
+      $("#theComments").css({ "margin-right": "0px" });
+      //load the comments div with content
+      var html = ""; //we will add html dynamically to this
+      //first, if user is logged in they can write comments and requests
+      if (loggedIn == true) {
+        html =
+          "<br><center><textarea id='enterCommentBox' rows='4' cols='50' maxlength='600' placeholder='leave a helpful comment...'></textarea><br><div id='suggestionMsg'>Your mixer settings will be added to your comment<br>Use this to provide an audible demonstration</div><button id='addSuggestionBtn' onclick='addSuggestion()'>add suggestion</button> <button id='postCommentBtn' onclick='postComment()'>post comment</button></center><br><div id='commentQuestion'></div><div id='commentList'><div class='comment'><center>Be the first to leave a comment!</center></div></div>";
+      } else {
+        //if user is not logged in they don't get the 'add comment' box
+        html =
+          "<br><div id='commentQuestion'></div><div id='commentList'><div class='comment'>Be the first to leave a comment!</div></div>";
+      }
+      //write the html to the div
+      $("#theComments").html(html);
+      //now use ajax request to get question and comments
+      getQuestion();
+      getIDsForComments(songID, theMix.userId);
+    } else {
+      showingComments = false;
+      $("#theComments").css({ "margin-right": "-400px" });
+    }
+  });
+
+  function addSuggestion() {
+    //set the variable to true so we know to add the control parameters when the comment is posted
+    addingSuggestion = true;
+    //hide the addSuggestion button
+    $("#addSuggestionBtn").hide();
+    $("#suggestionMsg").css("display", "block");
+  }
+
+  //used in comments section to load mix settings then start playback from a specific timepoint
+  function playComment(time, j) {
+    //set the mixer by running the click handler for the audition comment button
+    $("#auditionBtn" + j).click();
+    if (playing == true) {
+      stop(); //start playback
+    }
+    //set the position in the song we want to start playback from
+    thePos = time;
+    play();
+  }
+
+  function checkForTimedComments(txt, k) {
+    //params the text, the comment loop position
+    //get the position of the @ symbol
+    var pos = txt.indexOf("@");
+    if (pos != -1) {
+      //if we find an @ symbol
+      //slice the time out of this
+      var resLong = txt.slice(pos, pos + 6);
+      var resShort = txt.slice(pos + 1, pos + 6);
+      var resSplit = resShort.split(":");
+      //convert the position into decimal format percentage of song like 0.9 i.e. 90%
+      var seconds = parseInt(resSplit[0]) * 60 + parseInt(resSplit[1]);
+      var decimalPos = seconds / (songLength / M[8].speed);
+      //var html = "<button onclick='playComment("+decimalPos+", "+k+")'>"+ resLong +"</button>";
+      var html =
+        "<a href='#' class='commentTimeLink' onclick='playComment(" +
+        decimalPos +
+        ", " +
+        k +
+        ")'>" +
+        resLong +
+        "</a>";
+      //now replace this time with a hyperlinked play function
+      txt = txt.replace(resLong, html);
+    }
+    return txt;
+  }
+
+  function postComment(k) {
+    var txt = escape($("#enterCommentBox").val());
+    //check if this is the default mix and if so don't allow users to comment
+    if (mixID == 1) {
+      //the default
+      alert(
+        "This is the default mix - comments are disabled.\nPress a blue arrow on the master channel to switch to a remix you can comment on...\n...or if no remixes exist yet why not create one!"
+      );
+      //clear and hide comment box
+      $("#enterCommentBox").val("");
+    } else if (txt == "") {
+      alert("did you forget to enter your comment?");
+    } else {
+      if (addingSuggestion == false) {
+        //we just post the comment - not the interface controls
+        //use ajax to push the comment
+        $.ajax({
+          type: "POST",
+          url: "/pushComment",
+          data: {
+            comment: txt,
+            mixId: mixIDset[mixLoopPos].id,
+            songId: songID,
+            uid: ourUser.UID,
+            userName: ourUser.display_name
+          },
+          success: function() {
+            //clear the text area box
+            $("#enterCommentBox").val("");
+            //reset the comments list so this users new comment now appears at the top of the list
+            getIDsForComments(songID, theMix.userId);
+          },
+          error: function() {
+            console.log("ajax function failed - could not push comment to DB");
+          }
+        });
+      } else {
+        //we need to post the interface controls and the comment
+        $.ajax({
+          type: "POST",
+          url: "/pushCommentWithSuggestion",
+          data: {
+            //add song and user
+            comment: txt,
+            mixId: mixIDset[mixLoopPos].id,
+            songId: songID,
+            uid: ourUser.UID,
+            userName: ourUser.display_name,
+            userId: ourUser.display_name,
+            uid: ourUser.UID,
+            T1Stem: selectedStems[0],
+            M0vol: M[0].volume,
+            M0mute: M[0].mute,
+            M0solo: M[0].solo,
+            M0eqActive: M[0].eqActive,
+            M0HF: M[0].HF,
+            M0HG: M[0].HG,
+            M0HQ: M[0].HQ,
+            M0HType: M[0].HType,
+            M0HMF: M[0].HMF,
+            M0HMG: M[0].HMG,
+            M0HMQ: M[0].HMQ,
+            M0HMType: M[0].HMType,
+            M0LMF: M[0].LMF,
+            M0LMG: M[0].LMG,
+            M0LMQ: M[0].LMQ,
+            M0LMType: M[0].LMType,
+            M0LType: M[0].LType,
+            M0LG: M[0].LG,
+            M0LF: M[0].LF,
+            M0LQ: M[0].LQ,
+            M0compActive: M[0].compActive,
+            M0ratio: M[0].ratio,
+            M0threshold: M[0].threshold,
+            M0knee: M[0].knee,
+            M0attack: M[0].attack,
+            M0release: M[0].release,
+            M0compMakeup: M[0].compMakeup,
+            M0driveActive: M[0].driveActive,
+            M0drive: M[0].drive,
+            M0driveTrim: M[0].driveTrim,
+            M0pan: M[0].pan,
+            M0reverbActive: M[0].reverbActive,
+            M0reverb: M[0].reverb,
+            M0delayActive: M[0].delayActive,
+            M0delay: M[0].delay,
+            T2Stem: selectedStems[1],
+            M1vol: M[1].volume,
+            M1mute: M[1].mute,
+            M1solo: M[1].solo,
+            M1eqActive: M[1].eqActive,
+            M1HF: M[1].HF,
+            M1HG: M[1].HG,
+            M1HQ: M[1].HQ,
+            M1HType: M[1].HType,
+            M1HMF: M[1].HMF,
+            M1HMG: M[1].HMG,
+            M1HMQ: M[1].HMQ,
+            M1HMType: M[1].HMType,
+            M1LMF: M[1].LMF,
+            M1LMG: M[1].LMG,
+            M1LMQ: M[1].LMQ,
+            M1LMType: M[1].LMType,
+            M1LType: M[1].LType,
+            M1LG: M[1].LG,
+            M1LF: M[1].LF,
+            M1LQ: M[1].LQ,
+            M1compActive: M[1].compActive,
+            M1ratio: M[1].ratio,
+            M1threshold: M[1].threshold,
+            M1knee: M[1].knee,
+            M1attack: M[1].attack,
+            M1release: M[1].release,
+            M1compMakeup: M[1].compMakeup,
+            M1driveActive: M[1].driveActive,
+            M1drive: M[1].drive,
+            M1driveTrim: M[1].driveTrim,
+            M1pan: M[1].pan,
+            M1reverbActive: M[1].reverbActive,
+            M1reverb: M[1].reverb,
+            M1delayActive: M[1].delayActive,
+            M1delay: M[1].delay,
+            T3Stem: selectedStems[2],
+            M2vol: M[2].volume,
+            M2mute: M[2].mute,
+            M2solo: M[2].solo,
+            M2eqActive: M[2].eqActive,
+            M2HF: M[2].HF,
+            M2HG: M[2].HG,
+            M2HQ: M[2].HQ,
+            M2HType: M[2].HType,
+            M2HMF: M[2].HMF,
+            M2HMG: M[2].HMG,
+            M2HMQ: M[2].HMQ,
+            M2HMType: M[2].HMType,
+            M2LMF: M[2].LMF,
+            M2LMG: M[2].LMG,
+            M2LMQ: M[2].LMQ,
+            M2LMType: M[2].LMType,
+            M2LType: M[2].LType,
+            M2LG: M[2].LG,
+            M2LF: M[2].LF,
+            M2LQ: M[2].LQ,
+            M2compActive: M[2].compActive,
+            M2ratio: M[2].ratio,
+            M2threshold: M[2].threshold,
+            M2knee: M[2].knee,
+            M2attack: M[2].attack,
+            M2release: M[2].release,
+            M2compMakeup: M[2].compMakeup,
+            M2driveActive: M[2].driveActive,
+            M2drive: M[2].drive,
+            M2driveTrim: M[2].driveTrim,
+            M2pan: M[2].pan,
+            M2reverbActive: M[2].reverbActive,
+            M2reverb: M[2].reverb,
+            M2delayActive: M[2].delayActive,
+            M2delay: M[2].delay,
+            T4Stem: selectedStems[3],
+            M3vol: M[3].volume,
+            M3mute: M[3].mute,
+            M3solo: M[3].solo,
+            M3eqActive: M[3].eqActive,
+            M3HF: M[3].HF,
+            M3HG: M[3].HG,
+            M3HQ: M[3].HQ,
+            M3HType: M[3].HType,
+            M3HMF: M[3].HMF,
+            M3HMG: M[3].HMG,
+            M3HMQ: M[3].HMQ,
+            M3HMType: M[3].HMType,
+            M3LMF: M[3].LMF,
+            M3LMG: M[3].LMG,
+            M3LMQ: M[3].LMQ,
+            M3LMType: M[3].LMType,
+            M3LType: M[3].LType,
+            M3LG: M[3].LG,
+            M3LF: M[3].LF,
+            M3LQ: M[3].LQ,
+            M3compActive: M[3].compActive,
+            M3ratio: M[3].ratio,
+            M3threshold: M[3].threshold,
+            M3knee: M[3].knee,
+            M3attack: M[3].attack,
+            M3release: M[3].release,
+            M3compMakeup: M[3].compMakeup,
+            M3driveActive: M[3].driveActive,
+            M3drive: M[3].drive,
+            M3driveTrim: M[3].driveTrim,
+            M3pan: M[3].pan,
+            M3reverbActive: M[3].reverbActive,
+            M3reverb: M[3].reverb,
+            M3delayActive: M[3].delayActive,
+            M3delay: M[3].delay,
+            T5Stem: selectedStems[4],
+            M4vol: M[4].volume,
+            M4mute: M[4].mute,
+            M4solo: M[4].solo,
+            M4eqActive: M[4].eqActive,
+            M4HF: M[4].HF,
+            M4HG: M[4].HG,
+            M4HQ: M[4].HQ,
+            M4HType: M[4].HType,
+            M4HMF: M[4].HMF,
+            M4HMG: M[4].HMG,
+            M4HMQ: M[4].HMQ,
+            M4HMType: M[4].HMType,
+            M4LMF: M[4].LMF,
+            M4LMG: M[4].LMG,
+            M4LMQ: M[4].LMQ,
+            M4LMType: M[4].LMType,
+            M4LType: M[4].LType,
+            M4LG: M[4].LG,
+            M4LF: M[4].LF,
+            M4LQ: M[4].LQ,
+            M4compActive: M[4].compActive,
+            M4ratio: M[4].ratio,
+            M4threshold: M[4].threshold,
+            M4knee: M[4].knee,
+            M4attack: M[4].attack,
+            M4release: M[4].release,
+            M4compMakeup: M[4].compMakeup,
+            M4driveActive: M[4].driveActive,
+            M4drive: M[4].drive,
+            M4driveTrim: M[4].driveTrim,
+            M4pan: M[4].pan,
+            M4reverbActive: M[4].reverbActive,
+            M4reverb: M[4].reverb,
+            M4delayActive: M[4].delayActive,
+            M4delay: M[4].delay,
+            T6Stem: selectedStems[5],
+            M5vol: M[5].volume,
+            M5mute: M[5].mute,
+            M5solo: M[5].solo,
+            M5eqActive: M[5].eqActive,
+            M5HF: M[5].HF,
+            M5HG: M[5].HG,
+            M5HQ: M[5].HQ,
+            M5HType: M[5].HType,
+            M5HMF: M[5].HMF,
+            M5HMG: M[5].HMG,
+            M5HMQ: M[5].HMQ,
+            M5HMType: M[5].HMType,
+            M5LMF: M[5].LMF,
+            M5LMG: M[5].LMG,
+            M5LMQ: M[5].LMQ,
+            M5LMType: M[5].LMType,
+            M5LType: M[5].LType,
+            M5LG: M[5].LG,
+            M5LF: M[5].LF,
+            M5LQ: M[5].LQ,
+            M5compActive: M[5].compActive,
+            M5ratio: M[5].ratio,
+            M5threshold: M[5].threshold,
+            M5knee: M[5].knee,
+            M5attack: M[5].attack,
+            M5release: M[5].release,
+            M5compMakeup: M[5].compMakeup,
+            M5driveActive: M[5].driveActive,
+            M5drive: M[5].drive,
+            M5driveTrim: M[5].driveTrim,
+            M5pan: M[5].pan,
+            M5reverbActive: M[5].reverbActive,
+            M5reverb: M[5].reverb,
+            M5delayActive: M[5].delayActive,
+            M5delay: M[5].delay,
+            T7Stem: selectedStems[6],
+            M6vol: M[6].volume,
+            M6mute: M[6].mute,
+            M6solo: M[6].solo,
+            M6eqActive: M[6].eqActive,
+            M6HF: M[6].HF,
+            M6HG: M[6].HG,
+            M6HQ: M[6].HQ,
+            M6HType: M[6].HType,
+            M6HMF: M[6].HMF,
+            M6HMG: M[6].HMG,
+            M6HMQ: M[6].HMQ,
+            M6HMType: M[6].HMType,
+            M6LMF: M[6].LMF,
+            M6LMG: M[6].LMG,
+            M6LMQ: M[6].LMQ,
+            M6LMType: M[6].LMType,
+            M6LType: M[6].LType,
+            M6LG: M[6].LG,
+            M6LF: M[6].LF,
+            M6LQ: M[6].LQ,
+            M6compActive: M[6].compActive,
+            M6ratio: M[6].ratio,
+            M6threshold: M[6].threshold,
+            M6knee: M[6].knee,
+            M6attack: M[6].attack,
+            M6release: M[6].release,
+            M6compMakeup: M[6].compMakeup,
+            M6driveActive: M[6].driveActive,
+            M6drive: M[6].drive,
+            M6driveTrim: M[6].driveTrim,
+            M6pan: M[6].pan,
+            M6reverbActive: M[6].reverbActive,
+            M6reverb: M[6].reverb,
+            M6delayActive: M[6].delayActive,
+            M6delay: M[6].delay,
+            T8Stem: selectedStems[7],
+            M7vol: M[7].volume,
+            M7mute: M[7].mute,
+            M7solo: M[7].solo,
+            M7eqActive: M[7].eqActive,
+            M7HF: M[7].HF,
+            M7HG: M[7].HG,
+            M7HQ: M[7].HQ,
+            M7HType: M[7].HType,
+            M7HMF: M[7].HMF,
+            M7HMG: M[7].HMG,
+            M7HMQ: M[7].HMQ,
+            M7HMType: M[7].HMType,
+            M7LMF: M[7].LMF,
+            M7LMG: M[7].LMG,
+            M7LMQ: M[7].LMQ,
+            M7LMType: M[7].LMType,
+            M7LType: M[7].LType,
+            M7LG: M[7].LG,
+            M7LF: M[7].LF,
+            M7LQ: M[7].LQ,
+            M7compActive: M[7].compActive,
+            M7ratio: M[7].ratio,
+            M7threshold: M[7].threshold,
+            M7knee: M[7].knee,
+            M7attack: M[7].attack,
+            M7release: M[7].release,
+            M7compMakeup: M[7].compMakeup,
+            M7driveActive: M[7].driveActive,
+            M7drive: M[7].drive,
+            M7driveTrim: M[7].driveTrim,
+            M7pan: M[7].pan,
+            M7reverbActive: M[7].reverbActive,
+            M7reverb: M[7].reverb,
+            M7delayActive: M[7].delayActive,
+            M7delay: M[7].delay,
+            M8revType: M[8].revType,
+            M8reverbHP: M[8].reverbHP,
+            M8reverbLP: M[8].reverbLP,
+            M8delayT: M[8].delayT,
+            M8delayFB: M[8].delayFB,
+            M8delayHP: M[8].delayHP,
+            M8delayLP: M[8].delayLP,
+            M8speed: M[8].speed,
+            M8EQproView: M[8].EQproView,
+            M8compProView: M[8].compProView,
+            M8otherProView: M[8].otherProView,
+            M8masterProView: M[8].masterProView
+          },
+          success: function() {
+            //clear the text area box
+            $("#enterCommentBox").val("");
+            //reset the comments list so this users new comment now appears at the top of the list
+            getIDsForComments(songID, theMix.userId);
+            console.log("comment and suggestion succesfully posted");
+          },
+          error: function() {
+            console.log("ajax function failed - could not push comment to DB");
+          }
+        });
+      }
+    }
+    //reset the adding suggestion variable for the next comments
+    addingSuggestion = false;
+    $("#suggestionMsg").css("display", "none"); //hide the suggestion messagae
+    $("#addSuggestionBtn").css("display", "inline-block"); //reinstate the addSuggestion button
+  }
+
+  function postQuestion() {
+    var txt = $("#enterCommentBox").val();
+    //check if this is the default mix and if so don't allow users to comment
+    if (txt == "") {
+      alert("did you forget to enter your question?");
+    } else {
+      //use ajax to push the comment
+      $.ajax({
+        type: "POST",
+        url: "/pushQuestion",
+        data: {
+          comment: txt,
+          mixId: mixIDset[mixLoopPos].id,
+          songId: songID,
+          uid: ourUser.UID,
+          userName: ourUser.display_name
+        },
+        success: function() {
+          //the interface is currently set for postQuestion - change it to be set to post a comment
+          $("#addSuggestionBtn").css("display", "inline");
+          $("#postCommentBtn").html("post comment");
+          $("#enterCommentBox").val("");
+          $("#enterCommentBox").attr(
+            "placeholder",
+            "leave a helpful comment..."
+          );
+          $("#commentList").css("display", "inline");
+          //change the buttons onclick event to the function postQuestion
+          $("#postCommentBtn").attr("onclick", "postComment()");
+
+          //reset the comments list so this users new comment now appears at the top of the list
+          getQuestion();
+        },
+        error: function() {
+          console.log("ajax function failed - could not push comment to DB");
+        }
+      });
+    }
+  }
+
+  //songID, theMix.userId
+  function getIDsForComments(songId, remixer) {
+    //gives us a list of mix ids for the comments table representing this remixers mixes of this song
+    //only do this if this is not the default mix (which comments are not allowed for)
+    if (mixID != 1) {
+      $.ajax({
+        type: "GET",
+        url: "/getCommentIDs/" + songId + "/" + remixer,
+        success: function(result) {
+          //loop through the list
+          if (result.mixIDs.length > 0) {
+            //console.log('we got ' + result.mixIDs.length + ' mixIDs');
+            $("#commentList").html("");
+            //loop in reverse order so new mixes are dealt with first
+            for (var i = result.mixIDs.length - 1; i >= 0; i--) {
+              //console.log('we got mix ID: ' + result.mixIDs[i].id);
+              //add a comments div to the comments bar with this mix number as part of the ID
+              $("#commentList").append(
+                "<div id='commentsFor" + result.mixIDs[i].id + "'></div>"
+              );
+              //do a get comments function request feeding in the div we created above
+              getComments(
+                result.mixIDs[i].id,
+                "commentsFor" + result.mixIDs[i].id,
+                remixer
+              );
+            }
+          }
+        },
+        error: function() {
+          console.log("failed to pull comment IDs for this remixer");
+        }
+      });
+    } else {
+      //be the first to leave a comment
+      $("#commentList").html(
+        "<div class='comment'><center>Be the first to leave a comment!</center></div>"
+      );
+    }
+  }
+
+  function getComments(zeMix, theDiv, remixer) {
+    $.ajax({
+      type: "GET",
+      url: "/getComments/" + zeMix,
+      success: function(result) {
+        //console.log('We got gomments for mixId: ' + theMix);
+        if (result.theComments.length > 0) {
+          //put comments into the comments div
+          var html = "";
+          var timeInMs = Date.now();
+          //if the user is the remixer we check if we need to display feedback ratings for comments
+          var showRatingSystem = false;
+          if (loggedIn == true) {
+            if (ourUser.display_name == remixer) {
+              showRatingSystem = true; //we will display the feedback rating div (if it not already rated)
+              console.log("will show rating system");
+            }
+          }
+
+          for (var i = result.theComments.length - 1; i >= 0; i--) {
+            //PUMP COMMENT INTO THE txt = checkForTimedComments(result.theComments[i].comment, i) FUNCTION
+            txt = checkForTimedComments(result.theComments[i].comment, i);
+            //CHANGE THE html += result.theComments[i].comment to use txt
+            txt = unescape(txt);
+            //console.log(result.theComments[i].comment);
+            var date1 = new Date(result.theComments[i].timestamp);
+            //alert( timeDifference(timeInMs, date1) );
+            html +=
+              "<div class='comment'><div id='commentNameLbl'>" +
+              result.theComments[i].userName +
+              " says:<div id='commentTimestamp'>" +
+              timeDifference(timeInMs, date1) +
+              "</div></div><br>" +
+              txt +
+              "<br>";
+            //check if we need to show the 'audition suggestion' button
+            if (result.theComments[i].suggestion != null) {
+              html +=
+                "<button class='auditionBtn' id='auditionBtn" +
+                i +
+                "' onclick='auditionComment(" +
+                result.theComments[i].suggestion +
+                "," +
+                i +
+                ")'>audition suggestion</button><br><br>";
+            } else {
+              html += "<br>";
+            }
+            //check if we need to add the rating system to this div
+            if (
+              showRatingSystem == true &&
+              result.theComments[i].clarityRating == null &&
+              result.theComments[i].userName != theMix.userId
+            ) {
+              html += "<div class='showRating'>";
+              html +=
+                "<div class='commentClarity'><strong>CLARITY:</strong> How clear is this feedback? <br><br><center><div class='rateYo' id='cYoRating" +
+                result.theComments[i].id +
+                "'></div></center><br></div>";
+              html +=
+                "<div class='commentHelpfulness'><strong>HELPFULNESS:</strong> How helpful did you find this feedback? <br><br><center><div class='rateYo' id='hYoRating" +
+                result.theComments[i].id +
+                "'></div></center></div><br>";
+              html +=
+                "<center><button class='submitFBBtn' onclick='sendFeedback(" +
+                result.theComments[i].id +
+                ")'>done</button></center></div>";
+            }
+            html += "</div>";
+          }
+          //write the html to the div
+          $("#" + theDiv).html(html);
+          //run rateyo function
+          $(".rateYo").rateYo({
+            rating: 0,
+            starWidth: "20px",
+            numStars: 5,
+            halfStar: true,
+            normalFill: "#D3D3D3",
+            ratedFill: "#dfff00"
+          });
+        }
+      },
+      error: function() {
+        console.log("failed to pull comments for this mix");
+      }
+    });
+  }
+
+  //called when an 'audition suggestion' button is clicked
+  function auditionComment(JSONmix, k) {
+    //anything being soloed?
+    var soloedTrack = checkSolo();
+    if (auditioning != "none" && auditioning != k) {
+      //we need to switch off the currently auditioning comment
+      //turn off audition buttons animation
+      $("#auditionBtn" + auditioning).css({ animation: "none" });
+      //remove 'blocker' overlay so people can use controls again
+      $("#blocker").css({ display: "none" });
+      auditioning = "none";
+      M = JSON.parse(JSON.stringify(userMix));
+      //remove the borders
+      $(".border").css("display", "none"); //if so show yellow box
+    }
+    if (auditioning == "none") {
+      //nothing currently being auditioned so start auditioning this
+      auditioning = k; //store which comment is being auditioned
+      //console.log(JSONmix);
+      //clone the whole M (mix) object to store current mix settings
+      userMix = JSON.parse(JSON.stringify(M));
+      //blank out all the controls
+      $("#blocker").css({ display: "block" });
+      //flash the audition comment button
+      $("#auditionBtn" + k).css({ animation: "pulse 1s infinite" });
+      //implement the new mix settings just like on an arrowL click
+      mixToVariables(JSONmix);
+      //if something was soloed ajust the mix object
+      if (soloedTrack != -1) {
+        M[soloedTrack].solo = true;
+      }
+      if (playing == true) {
+        setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+      } else {
+        //if we are not currently playing
+        stop();
+        play();
+      }
+      //put these into the interface control positions
+      setInterface();
+      //if there was a soloed track color it appropriately
+      if (soloedTrack != -1) {
+        $("#btnSolo" + soloedTrack).css({ background: "#2eb82e" });
+      }
+      //set the z-index of the compare button to be below the 'blocker' div
+      $("#checkBtn").css("z-index", "10");
+      //draw yellow boxes around the changed controls
+      compareMixes(M, userMix);
+    } else {
+      //only other option is that this button is currently auditioning so switch it off
+      //turn off audition buttons animation
+      $("#auditionBtn" + auditioning).css({ animation: "none" });
+      //remove 'blocker' overlay so people can use controls again
+      $("#blocker").css({ display: "none" });
+      //now reset the audio
+      auditioning = "none";
+      //copy userMix back into M (mix) object
+      M = JSON.parse(JSON.stringify(userMix));
+      //if somehting was soloed ajust the mix object
+      if (soloedTrack != -1) {
+        M[soloedTrack].solo = true;
+        console.log("M[" + soloedTrack + "].solo: " + M[soloedTrack].solo);
+      }
+      //put these into the web audio nodes
+      if (playing == true) {
+        setWebAudioParams(); //NOTE: if I decide to pause playback I won't need this line as this function is called during the play routine
+      }
+      //put these into the interface control positions
+      setInterface();
+      //if there was a soloed track color it appropriately
+      if (soloedTrack != -1) {
+        $("#btnSolo" + soloedTrack).css({ background: "#2eb82e" });
+      }
+      //get rid of the userMix memory
+      userMix.length = 0;
+      //set the z-index of the compare button to be below the 'blocker' div
+      $("#checkBtn").css("z-index", "13");
+      //remove the borders
+      $(".border").css("display", "none"); //if so show yellow box
+    }
+  }
+
+  //submits users feedback on clarity and helpfulness of comments
+  function sendFeedback(commentId) {
+    // var cRating = $('#cRating' + commentId).val();
+    // var hRating = $('#hRating' + commentId).val();
+    var cRating = $("#cYoRating" + commentId).rateYo("rating") * 2; //to map 0..10
+    var hRating = $("#hYoRating" + commentId).rateYo("rating") * 2; //to map 0..10
+    // alert('cRating: ' + cRating + ', hRating: ' + hRating);
+    // alert("about to submit feedback for comment: " + commentId + "\nwith clarity rating: " + cRating + "\nand helpfulness rating: " + hRating);
+    //ajax post ratings into mixComments table
+    $.ajax({
+      type: "POST",
+      url: "/pushFeedback",
+      data: { clarity: cRating, helpfulness: hRating, commentId: commentId },
+      success: function() {
+        //hide the feedback sliders from this comment by running the get comments function again
+        getIDsForComments(songID, theMix.userId);
+      },
+      error: function() {
+        console.log(
+          "ajax function failed - could not push comments feedback to DB"
+        );
+      }
+    });
+  }
+
+  function getQuestion() {
+    //only do this if this is not the default mix (which comments are not allowed for)
+    if (mixID != 1) {
+      $.ajax({
+        type: "GET",
+        url: "/getQuestion/" + mixID,
+        success: function(result) {
+          if (result.theQuestion.length > 0) {
+            //write the question to the comment div
+            $("#commentQuestion").html(
+              "The remixer " +
+                result.theQuestion[0].userName +
+                ' asks: "<i>' +
+                result.theQuestion[0].comment +
+                '</i>"<br>'
+            );
+          } else {
+            //there is no question for this remix
+            $("#commentQuestion").html("");
+            //check if this user is the remixer
+            if (loggedIn == true) {
+              if (ourUser.display_name == theMix.userId) {
+                console.log(
+                  "you are the remixer so we will show you the add question box"
+                );
+                //if so change the comments box to be a question box
+                $("#addSuggestionBtn").css("display", "none");
+                $("#postCommentBtn").html("post question");
+                $("#enterCommentBox").attr(
+                  "placeholder",
+                  "You can ask a question about your remix so people know how to help you..."
+                );
+                $("#commentList").css("display", "none");
+                //change the buttons onclick event to the function postQuestion
+                $("#postCommentBtn").attr("onclick", "postQuestion()");
+              } else {
+                //ensure the ask question box is hidden and show the add comment box
+                if ($("#addSuggestionBtn").css("display") == "none") {
+                  //we are in ask a question mode so change back to add comment
+                  console.log("going to show the suggestion box");
+                  $("#addSuggestionBtn").css("display", "inline");
+                  $("#postCommentBtn").html("post comment");
+                  $("#enterCommentBox").attr(
+                    "placeholder",
+                    "leave a helpful comment..."
+                  );
+                  $("#commentList").css("display", "block");
+                  //change the buttons onclick event to the function postQuestion
+                  $("#postCommentBtn").attr("onclick", "postComment()");
+                }
+              }
+            }
+          }
+        },
+        error: function() {
+          console.log("failed to pull question for this mix");
+        }
+      });
+    }
+  }
+
+  function timeDifference(current, previous) {
+    var msPerMinute = 60 * 1000;
+    var msPerHour = msPerMinute * 60;
+    var msPerDay = msPerHour * 24;
+    var msPerMonth = msPerDay * 30;
+    var msPerYear = msPerDay * 365;
+    var elapsed = current - previous;
+    if (elapsed < msPerMinute) {
+      return Math.round(elapsed / 1000) + " seconds ago";
+    } else if (elapsed < msPerHour) {
+      return Math.round(elapsed / msPerMinute) + " minutes ago";
+    } else if (elapsed < msPerDay) {
+      return Math.round(elapsed / msPerHour) + " hours ago";
+    } else if (elapsed < msPerMonth) {
+      return "approximately " + Math.round(elapsed / msPerDay) + " days ago";
+    } else if (elapsed < msPerYear) {
+      return (
+        "approximately " + Math.round(elapsed / msPerMonth) + " months ago"
+      );
+    } else {
+      return "approximately " + Math.round(elapsed / msPerYear) + " years ago";
+    }
+  }
+
+  function compareMixes(mix1, mix2) {
+    //loop through the number of channels
+    for (var i = 0; i < numChannels; i++) {
+      //for each channel...
+      //check if sample has changed
+      if (mix1[i].stem != mix2[i].stem) {
+        $("#sampleBorder" + i.toString()).css("display", "inline-block"); //if so show yellow box
+        alert("stem change on " + i);
+      }
+      //check if EQ controls have changed
+      if (
+        mix1[i].HF != mix2[i].HF ||
+        mix1[i].HG != mix2[i].HG ||
+        mix1[i].HMF != mix2[i].HMF ||
+        mix1[i].HMG != mix2[i].HMG ||
+        mix1[i].HMQ != mix2[i].HMQ ||
+        mix1[i].LMF != mix2[i].LMF ||
+        mix1[i].LMG != mix2[i].LMG ||
+        mix1[i].LMQ != mix2[i].LMQ ||
+        mix1[i].LG != mix2[i].LG ||
+        mix1[i].LF != mix2[i].LF
+      ) {
+        $("#eqBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if compressor controls have changed
+      if (
+        mix1[i].ratio != mix2[i].ratio ||
+        mix1[i].threshold != mix2[i].threshold ||
+        mix1[i].attack != mix2[i].attack ||
+        mix1[i].release != mix2[i].release ||
+        mix1[i].compMakeup != mix2[i].compMakeup ||
+        mix1[i].knee != mix2[i].knee
+      ) {
+        $("#compBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if vol fader has changed
+      if (mix1[i].volume != mix2[i].volume) {
+        $("#faderBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if pan control has changed
+      if (mix1[i].pan != mix2[i].pan) {
+        $("#panBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if drive control has changed
+      if (mix1[i].drive != mix2[i].drive) {
+        $("#driveBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if reverb control has changed
+      if (mix1[i].reverb != mix2[i].reverb) {
+        $("#reverbBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if delay control has changed
+      if (mix1[i].delay != mix2[i].delay) {
+        $("#delayBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+      //check if mute button has changed
+      if (mix1[i].mute != mix2[i].mute) {
+        $("#muteBorder" + i).css("display", "inline-block"); //if so show yellow box
+      }
+    }
+    //check if tempo was changed
+    if (mix1[8].speed != mix2[8].speed) {
+      $("#tempoBorder").css("display", "inline-block"); //if so show yellow box
+    }
+    //check if delay master was changed
+    if (
+      mix1[8].delayT != mix2[8].delayT ||
+      mix1[8].delayHP != mix2[8].delayHP ||
+      mix1[8].delayLP != mix2[8].delayLP ||
+      mix1[8].delayFB != mix2[8].delayFB
+    ) {
+      $("#delayMasterBorder").css("display", "inline-block"); //if so show yellow box
+    }
+    //check if reverb master was changed
+    if (
+      mix1[8].revType != mix2[8].revType ||
+      mix1[8].reverbHP != mix2[8].reverbHP ||
+      mix1[8].reverbLP != mix2[8].reverbLP
+    ) {
+      $("#reverbMasterBorder").css("display", "inline-block"); //if so show yellow box
+    }
+  }
+
+  //the Q button is clicked
+  $("#commentsQ").click(function() {
+    if (playing == true) {
+      pause();
+    } //pause any playing music so the user can engage with the new content
+    pushInteractionToDB("#commentsQ", "N/A", "N/A");
+    openLZ("/learningzone/7"); //open learning zone and feed it param 3 so it can load video on EQs
+  });
+</script>

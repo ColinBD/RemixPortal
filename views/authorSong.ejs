@@ -1,0 +1,355 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/authorSong.css" />
+  </head>
+
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <!-- main content -->
+    <div id="authorSongZone">
+      <form
+        id="uploadForm"
+        enctype="multipart/form-data"
+        action="/uploadNewSong"
+        method="POST"
+        enctype="multipart/form-data"
+        onsubmit="return checkTheForm()"
+      >
+        <!-- note: I need to pass through the artistID and the UID for security -->
+        <span
+          style="font-weight: bold; font-size: 16px; text-decoration: underline;"
+          >Add a new track for <%= theData[0].artist %></span
+        ><br /><br />
+        Add a title:
+        <input
+          type="text"
+          name="songTitle"
+          id="songTitle_id"
+          maxlength="60"
+          size="60"
+        /><br /><br />
+        Choose the best matching genre (from our admittedly limited selection):
+        <select name="genre" id="genre_id">
+          <option disabled selected value> - select - </option>
+          <option value="african">African</option>
+          <option value="asian">Asian</option>
+          <option value="blues">Blues</option>
+          <option value="classical">Classical</option>
+          <option value="electronic">Electronic</option>
+          <option value="folk">Folk</option>
+          <option value="hiphop">Hip hop</option>
+          <option value="jazz">Jazz</option>
+          <option value="pop">Pop</option>
+          <option value="reggae">Reggae</option>
+          <option value="rock">Rock</option>
+          <option value="rnb">RnB</option>
+        </select>
+        <br /><br />
+        <!-- store lat in hidden field -->
+        <input type="hidden" value="0" name="lat" />
+        <!-- store long in hidden field -->
+        <input type="hidden" value="0" name="long" />
+        <!-- store artist name in hidden field -->
+        <input type="hidden" value="0" name="artistName" />
+        <!-- store artistId in hidden field -->
+        <input type="hidden" value="0" name="artistId" />
+        <!-- store UID in hidden field -->
+        <input type="hidden" value="0" name="UID" />
+
+        You can now add up to eight stems...<br />
+        -- stems should be 128kbps .mp3 files --<br /><br />
+        <!-- stem 1 label and file -->
+        <div id="T1up">
+          Stem 1 title:
+          <input
+            type="text"
+            name="stem1Title"
+            id="stem1Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ1">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 2 label and file -->
+        <div id="T2up" style="visibility: hidden; display: none;">
+          Stem 2 title:
+          <input
+            type="text"
+            name="stem2Title"
+            id="stem2Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ2">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 3 label and file -->
+        <div id="T3up" style="visibility: hidden; display: none;">
+          Stem 3 title:
+          <input
+            type="text"
+            name="stem3Title"
+            id="stem3Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ3">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 4 label and file -->
+        <div id="T4up" style="visibility: hidden; display: none;">
+          Stem 4 title:
+          <input
+            type="text"
+            name="stem4Title"
+            id="stem4Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ4">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 5 label and file -->
+        <div id="T5up" style="visibility: hidden; display: none;">
+          Stem 5 title:
+          <input
+            type="text"
+            name="stem5Title"
+            id="stem5Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ5">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 6 label and file -->
+        <div id="T6up" style="visibility: hidden; display: none;">
+          Stem 6 title:
+          <input
+            type="text"
+            name="stem6Title"
+            id="stem6Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ6">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 7 label and file -->
+        <div id="T7up" style="visibility: hidden; display: none;">
+          Stem 7 title:
+          <input
+            type="text"
+            name="stem7Title"
+            id="stem7Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+          <div class="circle" id="circ7">
+            <div class="bar horizontal"></div>
+            <div class="bar vertical"></div>
+          </div>
+        </div>
+        <!-- stem 8 label and file -->
+        <div id="T8up" style="visibility: hidden; display: none;">
+          Stem 8 title:
+          <input
+            type="text"
+            name="stem8Title"
+            id="stem8Title_id"
+            maxlength="12"
+            size="12"
+          />&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Stem file:
+          <input type="file" name="MP3" accept=".mp3" /><br /><br />
+        </div>
+        <!-- finally a submit button -->
+        <br /><br />
+        <input type="submit" value="sumbit" name="submit" id="submitAuthSong" />
+      </form>
+      <div id="formCancel"><button id="cancelAuthSong">cancel</button></div>
+    </div>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+    <!-- general script -->
+    <script type="text/javascript">
+      var usersLat = 0,
+        usersLong = 0;
+      //get the users lat and long so we can store this withthe session
+      getLocation();
+
+      //set artistId hidden form field
+      $('input[name="artistId"]').val("<%= theData[0].Id %>"); //set the lat hidden field
+      //set artist name hidden form field
+      $('input[name="artistName"]').val("<%= theData[0].artist %>"); //set the lat hidden field
+
+      //the get latitude and longitude function
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(writePosition);
+        } else {
+          alert("Geolocation is not supported by this browser");
+        }
+      }
+
+      function writePosition(position) {
+        usersLat = position.coords.latitude;
+        usersLong = position.coords.longitude;
+        //write these coordinates to hidden form fields
+        $('input[name="lat"]').val(position.coords.latitude); //set the lat hidden field
+        $('input[name="long"]').val(position.coords.longitude); //set the long hidden field
+      }
+
+      function checkTheForm() {
+        var e = document.getElementById("genre_id");
+        //check there is a title
+        if (document.getElementsByName("songTitle")[0].value == "") {
+          alert("you need to enter a title for this track");
+          return false;
+          //check there is a genre selection
+        } else if (e.selectedIndex == 0) {
+          alert("make a genre selection");
+          return false;
+          //there are at least two stems
+        } else if (
+          $('input[name="MP3"]')[0].files.length < 1 ||
+          $('input[name="MP3"]')[1].files.length < 1
+        ) {
+          alert(
+            "you need to upload at least two audio files \n(In the first two upload boxes)"
+          );
+          return false;
+          //each stem has a label - stems 1&2 first
+        } else if (
+          document.getElementsByName("stem1Title")[0].value == "" ||
+          document.getElementsByName("stem2Title")[0].value == ""
+        ) {
+          alert("you need to provide titles for your audio files");
+          return false;
+          //if there is a stem 3 it needs a label
+        } else if ($('input[name="MP3"]')[2].files.length > 0) {
+          if (document.getElementsByName("stem3Title")[0].value == "") {
+            alert("you need to provide a title stem 3");
+            return false;
+          }
+          //if there is a stem 4 it needs a label
+        } else if ($('input[name="MP3"]')[3].files.length > 0) {
+          if (document.getElementsByName("stem4Title")[0].value == "") {
+            alert("you need to provide a title for stem 4");
+            return false;
+          }
+          //if there is a stem 5 it needs a label
+        } else if ($('input[name="MP3"]')[4].files.length > 0) {
+          if (document.getElementsByName("stem5Title")[0].value == "") {
+            alert("you need to provide a title for stem 5");
+            return false;
+          }
+          //if there is a stem 6 it needs a label
+        } else if ($('input[name="MP3"]')[5].files.length > 0) {
+          if (document.getElementsByName("stem6Title")[0].value == "") {
+            alert("you need to provide a title for stem 6");
+            return false;
+          }
+          //if there is a stem 7 it needs a label
+        } else if ($('input[name="MP3"]')[6].files.length > 0) {
+          if (document.getElementsByName("stem7Title")[0].value == "") {
+            alert("you need to provide a title for stem 7");
+            return false;
+          }
+          //if there is a stem 8 it needs a label
+        } else if ($('input[name="MP3"]')[7].files.length > 0) {
+          if (document.getElementsByName("stem8Title")[0].value == "") {
+            alert("you need to provide a title for stem 8");
+            return false;
+          }
+        } else {
+          return true;
+        }
+      }
+
+      //'plus' circle onclicks
+      $(".circle").click(function() {
+        if (this.id == "circ1") {
+          //show the next file uploader
+          $("#T2up").css("display", "block");
+          $("#T2up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ1").css("visibility", "hidden");
+          $("#circ1").css("display", "none");
+        } else if (this.id == "circ2") {
+          //show the next file uploader
+          $("#T3up").css("display", "block");
+          $("#T3up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ2").css("visibility", "hidden");
+          $("#circ2").css("display", "none");
+        } else if (this.id == "circ3") {
+          //show the next file uploader
+          $("#T4up").css("display", "block");
+          $("#T4up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ3").css("visibility", "hidden");
+          $("#circ3").css("display", "none");
+        } else if (this.id == "circ4") {
+          //show the next file uploader
+          $("#T5up").css("display", "block");
+          $("#T5up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ4").css("visibility", "hidden");
+          $("#circ4").css("display", "none");
+        } else if (this.id == "circ5") {
+          //show the next file uploader
+          $("#T6up").css("display", "block");
+          $("#T6up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ5").css("visibility", "hidden");
+          $("#circ5").css("display", "none");
+        } else if (this.id == "circ6") {
+          //show the next file uploader
+          $("#T7up").css("display", "block");
+          $("#T7up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ6").css("visibility", "hidden");
+          $("#circ6").css("display", "none");
+        } else if (this.id == "circ7") {
+          //show the next file uploader
+          $("#T8up").css("display", "block");
+          $("#T8up").css("visibility", "visible");
+          //hide the plus button
+          $("#circ7").css("visibility", "hidden");
+          $("#circ7").css("display", "none");
+        } else {
+          alert("clicked: " + this.id);
+        }
+      });
+    </script>
+  </body>
+</html>

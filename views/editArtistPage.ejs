@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      You can modify the musician/band page you administer here...<br /><br />
+
+      <!-- form items to gather the data for creating a new user -->
+      <form
+        id="newUserForm"
+        enctype="multipart/form-data"
+        action="/editArtistForm"
+        method="POST"
+        enctype="multipart/form-data"
+        onsubmit="return checkUserSignUpForm()"
+      >
+        <!-- band/artists name -->
+        Change the musician or band's name?:<br />
+        <input
+          type="text"
+          name="artist_name"
+          id="artist_name_id"
+          maxlength="40"
+          size="40"
+          value="<%= artistData[0].artist %>"
+        /><br /><br />
+        <!-- band/artist image -->
+        Change/add a profile image? (recommended size 315x500px). Current image:
+        <img src="<%=artistData[0].banner%>" style="width:125px;height:79px;" />
+        <input type="file" name="pic" accept="image/*" /><br /><br />
+        <!-- band/artist bio -->
+        Edit the biography?:<br />
+        <textarea NAME="bio" id="bio_id" rows="8" cols="100" maxlength="2000">
+<%= artistData[0].about %></textarea
+        ><br /><br />
+
+        <!-- social media links -->
+        Change the social media links?:<br />
+        (you can enter up to six URLs)<br />
+        <input
+          type="url"
+          NAME="link1"
+          id="link1_id"
+          size="40"
+          value="<%= artistData[0].link1 %>"
+        /><br />
+        <input
+          type="url"
+          NAME="link2"
+          id="link2_id"
+          size="40"
+          value="<%= artistData[0].link2 %>"
+        /><br />
+        <input
+          type="url"
+          NAME="link3"
+          id="link3_id"
+          size="40"
+          value="<%= artistData[0].link3 %>"
+        /><br />
+        <input
+          type="url"
+          NAME="link4"
+          id="link4_id"
+          size="40"
+          value="<%= artistData[0].link4 %>"
+        /><br />
+        <input
+          type="url"
+          NAME="link5"
+          id="link5_id"
+          size="40"
+          value="<%= artistData[0].link5 %>"
+        /><br />
+        <input
+          type="url"
+          NAME="link6"
+          id="link6_id"
+          size="40"
+          value="<%= artistData[0].link6 %>"
+        /><br /><br />
+
+        <!-- note I'll need a hidden field to collect UID -->
+        <input
+          type="hidden"
+          value="0"
+          name="userId"
+          value="<%= artistData[0].owner %>"
+        />
+        <!-- I'll need a hidden field to collect song id -->
+        <input type="hidden" value="0" name="Id" />
+        <!-- pass the token through here -->
+        <input type="hidden" value="0" name="token" />
+        <!-- finally a submit button -->
+        <input type="submit" value="Sumbit" name="submit" />
+      </form>
+      <div id="formCancel"></div>
+    </div>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+
+    <script>
+      //get the user object
+      user = firebase.auth().onAuthStateChanged(function(user) {
+      		if (user) { //we are logged in
+      			console.log(user);
+      		} else { //we are not logged in - THIS SHOULD NEVER OCCUR
+      			//send the user back to the home page
+      			var a = document.createElement('a');
+      			a.href='/';
+      			document.body.appendChild(a);
+      			a.click();
+      		};
+      });
+
+      //update hidden form field to include the song id
+      $('input[name="Id"]').val(<%= artistData[0].Id %>); //set the UID hidden field
+
+      //form validation
+      function checkUserSignUpForm () {
+      	//check there is a musican/band name
+       		if (document.getElementsByName('artist_name')[0].value == "") {
+            alert('there is a problem with the musician/band name entered');
+            return false;
+          //check all the social media URLs
+          } else {
+          	console.log('form checks passed');
+            	return true;
+          };
+      };
+    </script>
+  </body>
+</html>

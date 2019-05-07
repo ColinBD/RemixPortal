@@ -1,0 +1,9 @@
+<ul class='myUL'>
+    <% for (var i=0; i<newData.length; i++) { %>
+        <li><a href="/artist/<%=newData[i].artistId%>">
+                <%= newData[i].artist %></a> (<%= newData[i].distance%>km), <%= newData[i].songTitle %> <br>
+        <button type='button' class='previewBtn' id='<%=i%>' onclick="playPreview('<%= newData[i].previewPath %>', <%=i%>)">play</button> 
+        <button type='button' class='remixBtn' onclick="location.href='<%= newData[i].mixPath %>'">REMIX</button>
+        <button type='button' class='forTeacherBtn' onclick='createTeacherSession(<%= newData[i].songId %>)'>use in class</button></li>
+        <% } %> 
+</ul>

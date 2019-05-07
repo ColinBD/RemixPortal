@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <%- include partials/head.ejs %>
+  </head>
+
+  <body>
+    <!-- top Menu -->
+    <%- include partials/topMenu.ejs %>
+
+    <div id="zone">
+      <div id="userData"></div>
+      <br />
+      <button onclick="sendToken()">Send token to access profile page</button>
+    </div>
+
+    <script type="text/javascript">
+      //function to send the token as part of the profile page request
+      function sendToken() {
+        if (theToken) {
+          //if we have a logged in user's object...
+          //href = "/profile/" + theToken;
+          var a = document.createElement("a");
+          a.href = "/profile/" + theToken;
+          //a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+        }
+      }
+    </script>
+
+    <!-- signUp Modal -->
+    <%- include partials/signUpM.ejs %>
+    <!-- signUp with email Modal -->
+    <%- include partials/signUpWithEmailM.ejs %>
+
+    <!-- user login script -->
+    <script src="/resources/userLogin.js"></script>
+  </body>
+</html>

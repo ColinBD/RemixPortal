@@ -1,0 +1,274 @@
+<html>
+<head>
+	<%- include partials/head.ejs %>
+	<link rel="stylesheet" type="text/css" href="/stylesheets/profileStyle.css">
+</head>
+<body>
+	<!-- top Menu -->
+	<%- include partials/topMenu.ejs %>
+
+<div id='container'>
+	<!-- You have remixed -->
+	<div id='yourRemixes'>
+		<strong>You have remixed the following songs:</strong><br><br>
+		<!-- the list of remixes should be available using ejs to render the newData object -->
+		<ul class='remixedSongList'>
+		<!-- loop through the song data object -->
+		<% for (var i=0; i<songData.length; i++) { %>
+			<% for (var k=mixData.length - 1; k>=0; k--) { %>
+				<% if (songData[i].songId == mixData[k].songId) {  %>
+					<!-- create a link -->
+					<li><a href='/mixer/<%= mixData[k].songId %>/<%= mixData[k].id %>'><%=songData[i].songTitle%> by <%=songData[i].artist%></a></li>
+					<% break %>
+				 <% };  %>
+			 <% };  %>	
+		<% }; %>
+		</ul>
+	</div>
+
+	<!-- View your information -->
+	<div id='yourDetails'>
+		<!-- filled dynamically from userLogin.js -->
+	</div>
+
+	<!-- Create a musician/band page -->
+	<div id='createPageLink'>
+		<!-- filled dynamically from userLogin.js -->	
+	</div>
+
+	<!-- Your musician/band pages -->
+	<div id='yourArtists'>
+		<!-- filled dynamically from userLogin.js -->
+	</div>
+		
+	<!-- Your musician/band tracks -->
+	<div id='yourTracks'>
+		<!-- filled dynamically from userLogin.js -->
+		<strong>You have uploaded the following tracks:</strong>
+	</div>
+
+	<!-- Modal to edit user info -->
+	<div id="myModal_editInfo" class="modal">
+		<!-- Modal content -->
+  		<div id="modal_upload_content" class="modal-content">
+    		<span class="modal-close">&times;</span>
+    		<h2>Edit your information</h2>
+    		<!-- form items to gather the data for the upload -->
+    		<form 
+    			id="editUserForm"
+    			enctype="multipart/form-data"
+    			action='/editUserForm' 
+    			method='POST' 
+    			enctype="multipart/form-data"
+    			onsubmit="return checkUserSignUpForm()"
+    			>
+			    <!-- display name -->
+			    Create a username to be displayed on the site:<br> 
+			    <span id='smallIt'>note: if you are a child ensure this is not your real name</span> <br>
+			    <input type="text" name="user_name" id='user_name_id' maxlength="12"><br><br>
+    			<!-- copyright checkbox -->
+    			Please enter your year of birth e.g. 1990:<br> 
+    			<span id='smallIt'>note: this will only be seen by the research team</span><br>
+    			<INPUT type="text" NAME="DOB" id='DOB_id' maxlength="4" value='19'><br><br>
+				Please enter an email address which the research team can use to contact you about this project:<br> 
+				<span id='smallIt'>note: this will only be seen by the research team</span><br>
+				<INPUT type="text" NAME="email_add" id='email_add_id' size="50"><br><br>
+				Are you a teacher planning to use Remix Portal with your class?<br>
+				<INPUT type="radio" NAME="teacher_check" VALUE="y" id='radioYes'>Yes
+				<INPUT type="radio" NAME="teacher_check" VALUE="n" id='radioNo' checked>No<br><br>
+			    <!-- finally a submit button -->
+			    <input type="submit" value="Sumbit" name="submit" class="submitBtn">
+			</form>
+  		</div>
+	</div>
+
+	<!-- Modal to create artist page -->
+	<div id="myModal_createArtistPage" class="modal">
+		<!-- Modal content -->
+  		<div id="modal_createArtist_content" class="modal-content">
+    		<span class="modal-close">&times;</span>
+    		<h2>Create a musician or band page</h2>
+    		<!-- form items to gather the data for the upload -->
+    		<form 
+    			id="createArtistForm"
+    			enctype="multipart/form-data"
+    			action='/createArtistForm' 
+    			method='POST' 
+    			enctype="multipart/form-data"
+    			onsubmit="return checkCreateArtistForm()"
+    			>
+			    <!-- band/artists name -->
+			    Enter a name for the musician or band:<br> 
+			    <input type="text" name="artist_name" id='artist_name_id' maxlength="40" size="40"><br><br>
+    			<!-- band/artist image -->
+    			Choose a profile image (recommended size 315x500px): 
+    			<input type="file" name="pic" accept="image/*"><br><br>
+    			<!-- band/artist bio -->
+    			Tell us a little bit about this musician or band:<br> 
+    			<textarea NAME="bio" id='bio_id' rows="6" cols="100" maxlength="2000" placeholder="Tell us about this musician/band..." style="width:560px"></textarea><br><br>
+				
+				<!-- social media links -->
+    			If you would like to link to social media accounts for this musician/band please enter the URLs below:<br>
+    			(you can enter up to six URLs)<br> 
+    			<input type="url" NAME="link1" id='link1_id' size='40'><br>
+    			<input type="url" NAME="link2" id='link2_id' size='40'><br>
+    			<input type="url" NAME="link3" id='link3_id' size='40'><br>
+    			<input type="url" NAME="link4" id='link4_id' size='40'><br>
+    			<input type="url" NAME="link5" id='link5_id' size='40'><br>
+    			<input type="url" NAME="link6" id='link6_id' size='40'><br><br>
+
+			    <!-- finally a submit button -->
+			    <input type="submit" value="Sumbit" name="submit" class="submitBtn">    
+			</form>
+  		</div>
+	</div>
+
+	<!-- Modal to edit artist page -->
+	<div id="myModal_editArtistPage" class="modal">
+		<!-- Modal content -->
+  		<div id="modal_editArtist_content" class="modal-content">
+    		<span class="modal-close">&times;</span>
+    		<h2>Edit the musician or band page here</h2>
+    		<!-- form items to gather the data for the upload -->
+    		<form 
+    			id="editArtistForm"
+    			enctype="multipart/form-data"
+    			action='/editArtistForm' 
+    			method='POST' 
+    			enctype="multipart/form-data"
+    			onsubmit="return checkEditArtistForm()"
+    			>
+			    <!-- band/artists name -->
+			    Change the musician or band's name?:<br> 
+			    <input type="text" name="e_artist_name" id='artist_name_id' maxlength="40" size="40" value="artist name"><br><br>
+    			<!-- band/artist image -->
+    			Change/add a profile image? (recommended size 315x500px). Current image: 
+    			<img id="smallPic" src="" style="width:auto;height:79px;">
+    			<input type="file" name="e_pic" accept="image/*"><br><br>
+    			<!-- band/artist bio -->
+    			Edit the biography?:<br> 
+    			<textarea NAME="e_bio" id='bio_id' rows="8" cols="100" maxlength="2000">bio</textarea><br><br>
+				
+				<!-- social media links -->
+    			Change the social media links?:<br>
+    			(you can enter up to six URLs)<br> 
+    			<input type="url" NAME="e_link1" id='link1_id' size='40' value=""><br>
+    			<input type="url" NAME="e_link2" id='link2_id' size='40' value=""><br>
+    			<input type="url" NAME="e_link3" id='link3_id' size='40' value=""><br>
+    			<input type="url" NAME="e_link4" id='link4_id' size='40' value=""><br>
+    			<input type="url" NAME="e_link5" id='link5_id' size='40' value=""><br>
+    			<input type="url" NAME="e_link6" id='link6_id' size='40' value=""><br><br>
+
+			    <!-- I'll need a hidden field to collect song id -->
+			    <input type="hidden" value="0" name="e_Id" >
+			    <!-- finally a submit button -->
+			    <input type="submit" value="Sumbit" name="submit" class="submitBtn">    
+			</form>
+  		</div>
+	</div>
+		
+</div>	
+
+	<!-- signUp Modal -->
+	<%- include partials/signUpM.ejs %>
+	<!-- signUp with email Modal -->
+	<%- include partials/signUpWithEmailM.ejs %>
+		
+	<!-- user login script -->
+	<script src="/resources/userLogin.js"></script>
+	
+	<!-- main script -->
+	<script type="text/javascript">
+		//when function is called the edit user info modal is displayed
+		function editUserInfo () {
+			$('#myModal_editInfo').css({'display': 'block'});
+		};
+
+		//when function is called the create artist page modal is displayed
+		function createArtistPage () {
+			$('#myModal_createArtistPage').css({'display': 'block'});
+		};
+
+		//when function is called the edit artist page modal is displayed
+		function modifyArtistsPage (theId) {
+			//do an ajax call with 'theId' to get the same info as userLogin.js line 168
+			$.ajax({
+		        type: 'GET',
+		        url: '/editArtistPage/' + theId + '/' + theToken,
+		        success: function (result) {
+		        //set the modal's form fields
+		        $('input[name="e_artist_name"]').val(result.artistData[0].artist); //set the artist name field
+		        $("#smallPic").attr("src",result.artistData[0].banner);//set banner
+		        $("#smallPic").css('border', "solid 2px black");//add image border
+		        $('textarea[name="e_bio"]').val(result.artistData[0].about); //bio
+		        $('input[name="e_link1"]').val(result.artistData[0].link1); //link 1
+		        $('input[name="e_link2"]').val(result.artistData[0].link2); //link 2
+		        $('input[name="e_link3"]').val(result.artistData[0].link3); //link 3
+		        $('input[name="e_link4"]').val(result.artistData[0].link4); //link 4
+		        $('input[name="e_link5"]').val(result.artistData[0].link5); //link 5
+		        $('input[name="e_link6"]').val(result.artistData[0].link6); //link 6
+		        $('input[name="e_Id"]').val(result.artistData[0].Id); //set songId hidden field
+		        //show the modal	
+		        $('#myModal_editArtistPage').css({'display': 'block'});  
+		        },
+		        error: function () {
+		          console.log('error trying to get artist details');
+		        }
+	    	});
+		};
+
+		//close the post-save modal
+	$('.modal-close').click(function () {
+		$('.modal').css({'display': 'none'});
+	});
+
+	//check user sign up form prior to giving it to the server
+	function checkUserSignUpForm () {
+		//check there is a user name
+  		if (document.getElementsByName('user_name')[0].value == "") {
+	      alert('there is a problem with the user name entered');
+	      return false;
+	    //check there is a year of birth and that all characters are numeric
+	    } else if ($.isNumeric(document.getElementsByName('DOB')[0].value) != true || 
+	    	$("#DOB_id").val().length != 4) {
+	      alert('there is a problem with the year of birth entered');
+	      return false;
+	    //check there is text entered for the email address as well as an @ symbol and .
+	    } else if (isValidEmailAddress(document.getElementsByName('email_add')[0].value) != true) {
+	      alert('there is a problem with the email address entered');
+	      return false;
+	    } else {
+	    	console.log('form checks passed');
+	      	return true;
+	    };   
+  	};
+
+  	//check create artist form prior to giving it to the server
+	function checkCreateArtistForm () {
+		//check there is a musican/band name
+  		if (document.getElementsByName('artist_name')[0].value == "") {
+	      alert('there is a problem with the musician/band name entered');
+	      return false;
+	    //check all the social media URLs
+	    } else {
+	    	console.log('form checks passed');
+	      	return true;
+	    };  
+  	};
+
+  	//check create artist form prior to giving it to the server
+	function checkEditArtistForm () {
+		//check there is a musican/band name
+  		if (document.getElementsByName('e_artist_name')[0].value == "") {
+	      alert('there is a problem with the musician/band name entered');
+	      return false;
+	    //check all the social media URLs
+	    } else {
+	    	console.log('form checks passed');
+	      	return true;
+	    }; 
+  	};
+			
+	</script>
+</body>
+</html>

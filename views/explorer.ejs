@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include partials/head.ejs %>
+    <script type="text/javascript" src="/resources/ejs_production.js"></script>
+</head>
+
+<body>
+  <!-- topMenu -->
+  <%- include partials/topMenu.ejs %>
+
+  <div id="zone">
+
+    <!-- Create a mixer div to be dynamically filled with content from the database -->
+    <div id='wrapper'>
+      <div id='selector'> 
+        <div id='filters'>
+          <ul class='myUL'> 
+            <li id='local'>Local</li>
+            <li id='genre'>Genre</li>
+            <li id='hot'>What's hot</li>
+            <li id='latest'>Latest</li>
+            <li id='artist'>Artist</li>
+          <!-- <li id='following'>Following</li><br> -->
+            <li id='lucky'>Lucky dip</li>
+          </ul>
+        </div>
+        <div id='filterGenre'>
+          <ul class='myUL'>
+            <li id='rock'>Rock</li>
+            <li id='rnb'>R&B and soul</li>
+            <li id='pop'>Pop</li>
+            <li id='hiphop'>Hip hop</li>
+            <li id='electronic'>Electronic</li>
+            <li id='folk'>Folk</li>
+            <li id='jazz'>Jazz</li>
+            <li id='reggae'>Reggae/Ska</li>
+            <li id='blues'>Blues</li>
+            <li id='classical'>Classical</li>
+            <li id='asian'>Asian</li>
+            <li id='african'>African</li>
+          </ul>
+        </div>
+        <div id='filterArtists'>
+        </div>
+        <div id='songlist'>
+          <ul class='myUL'>
+              <% for (var i=0; i<theData.length; i++) { %>
+                  <li><a href="/artist/<%=theData[i].artistId%>">
+                  <%= theData[i].artist %></a>, <%= theData[i].songTitle %> <br>
+                  <button type='button' class='previewBtn' id='<%=i%>' onclick="playPreview('<%= theData[i].previewPath %>', <%=i%>)">play</button> 
+                  <button type='button' class='remixBtn' onclick="location.href='<%= theData[i].mixPath %>'">REMIX</button>
+                  <button type='button' class='forTeacherBtn' onclick='createTeacherSession(<%= theData[i].songId %>)'>use in class</button></li>
+                  <% } %> 
+          </ul>
+        </div>
+      </div> 
+    </div>
+    
+  </div>
+	
+	<!-- check the browser - it must be Chrome -->
+  <!-- <script type="text/javascript" src="/resources/browserCheck.js"></script> -->
+
+  <!-- main script -->
+  <script>
+  //this array controls the song filters
+  var filters = [false, false, false, false, false, false, false]; //order: local[0], genre[1], hot[2], latest[3], artist[4], following[5], lucky[6] 
+  var filterNames = ['local', 'genre', 'hot', 'latest', 'artist', 'following', 'lucky'];
+  
+  //this array controls the second song filter
+  var filterGenre = [false, false, false, false, false, false, false, false, false, false, false, false];
+  var filterGenreLabels = ['rock', 'rnb', 'pop', 'hiphop', 'electronic', 'folk', 'jazz', 'reggae', 'blues', 'classical', 'asian', 'african'];
+
+  var selectedArtist = "";
+  var prevArtist = {};
+  var usersLong = '';
+  var usersLat = '';
+
+  //this is used within the func below to find the position of a value in an array set to true
+  function getPos(array) {
+    return array == true;
+  };
+
+  function removeGenreDivs () {
+    //go through each genre
+      //check if we have a value matching this genre in our songs object
+      var len = parseInt(<%=theData.length%>);
+
+      //search for 'rock' genre
+      <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('rock') != -1) { %>
+          <% break %>
+        <% } %> 
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('rock genre not found');
+               $('#rock').remove(); 
+            };
+      <% }; %>
+
+    //search for 'rnb' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('rnb') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('rnb genre not found');
+               $('#rnb').remove(); 
+            };
+      <% }; %>  
+
+    //search for 'pop' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('pop') != -1) { %>
+          <% break %>
+        <% } %> 
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('pop genre not found');
+               $('#pop').remove(); 
+            };
+      <% }; %>  
+
+    //search for 'hiphop' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('hiphop') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('hiphop genre not found');
+               $('#hiphop').remove(); 
+            };
+      <% }; %>  
+
+    //search for 'electronic' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('electronic') != -1) { %>
+          <% break %>
+        <% } %> 
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('electronic genre not found');
+               $('#electronic').remove(); 
+            };
+      <% }; %>  
+
+    //search for 'folk' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('folk') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('folk genre not found');
+               $('#folk').remove(); 
+            };
+      <% }; %>  
+
+    //search for 'jazz' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('jazz') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('jazz genre not found');
+               $('#jazz').remove(); 
+            };
+      <% }; %>    
+
+    //search for 'reggae' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('reggae') != -1) { %>
+          <% break %>
+        <% } %> 
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('reggae genre not found');
+               $('#reggae').remove(); 
+            };
+      <% }; %>   
+
+    //search for 'blues' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('blues') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('blues genre not found');
+               $('#blues').remove(); 
+            };
+      <% }; %>   
+
+    //search for 'classical' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('classical') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('classical genre not found');
+               $('#classical').remove(); 
+            };
+      <% }; %>    
+
+    //search for 'asian' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('asian') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('asian genre not found');
+               $('#asian').remove(); 
+            };
+      <% }; %> 
+
+    //search for 'african' genre
+    <% for (var i=0;i<theData.length;i++) {%>
+        <% if (theData[i].genre.indexOf('african') != -1) { %>
+          <% break %>
+        <% } %>
+        if (<%=i%> == (len - 2)) {
+               //if this is the last time around the loop remove this genres div
+               console.log('african genre not found');
+               $('#african').remove(); 
+            };
+      <% }; %>
+
+  };
+
+  //now call the function
+  removeGenreDivs ();
+
+  //use this to set the button colour and behind the scenes array data for the first filter
+  function setFilters (pos) {
+    //check if any filter needs deselecting
+    var theTrue = filters.findIndex(getPos);
+    if (theTrue != -1) { //the we have found one that needs deselecting
+      $('#' + filterNames[theTrue]).css({'background': '#f6f6f6'}); 
+      filters[theTrue] = false;
+      console.log('turning off: ' + theTrue);
+      if (theTrue == pos) { //we were only deslecting (not choosing an alternative option)
+        //load everything into the songSelector box
+        ajaxRequestForSongSelector ('/genreChoices', '/*')
+      };
+    };
+    //turn ours on if it was not previously selected
+    if (theTrue != pos) {
+      console.log('turning on: ' + pos);
+      $('#' + filterNames[pos]).css({'background': 'yellow'});
+      filters[pos] = true;
+    };
+    //now check if we want to show filterGenre div
+    var e = document.getElementById('filterGenre');
+    if (pos == 1 && theTrue != pos) {
+      //show this div
+      e.style.display = 'inline-block';
+    } else {
+      e.style.display = 'none';
+      //turn off any selected options within filterGenre
+      var theGenre = filterGenre.findIndex(getPos);
+      if (theGenre != -1) { //the we have found one that needs deselecting 
+        $('#' + filterGenreLabels[theGenre]).css({'background': '#f6f6f6'}); //set to white (off)
+        filterGenre[theGenre] = false;
+      };
+    };
+    //now check if we want to show filterArtists div
+    var e = document.getElementById('filterArtists');
+    if (pos == 4 && theTrue != pos) {
+      //show this div
+      e.style.display = 'inline-block';
+      //now work out how to fill this div
+      fillArtistsDiv();
+    } else {
+      e.style.display = 'none';
+    };
+  };
+
+  //use this to set the button colour and behind the scenes array data for the second filter
+  function setFilterGenre (pos) {
+    //check if any filter needs deselecting
+    var theTrue = filterGenre.findIndex(getPos);
+    if (theTrue != -1) { //the we have found one that needs deselecting
+      $('#' + filterGenreLabels[theTrue]).css({'background': '#f6f6f6'}); //set to white (off)
+      filterGenre[theTrue] = false;
+    };
+    //turn ours on if it was not previously selected
+    if (theTrue != pos) {
+      $('#' + filterGenreLabels[pos]).css({'background': 'yellow'}); //set to yellow (on)
+      filterGenre[pos] = true;
+    };
+  };  
+
+  function fillArtistsDiv () {
+    $.ajax({
+        type: 'GET',
+        url: '/fillArtistsDiv',
+        success: function (result) {
+          //console.log('we have content for the artists div: ');
+          var html = new EJS({url: 'ejs_chunks/artists.ejs'}).render(result);
+          //now write the EJS generated content to the div
+          document.getElementById('filterArtists').innerHTML = html;
+          
+          //click event handler
+          $('.artistName').click(function (e) {
+            var theID = $(this).data('id');
+            //pass the chosen artist to the DB and fill the songChoices div with this artists content
+            ajaxRequestForSongSelector ('/artistChoices/', theID);
+            //turn the button on or off (yellow/white)
+            if (selectedArtist == theID) { //then we are deselecting the currently selected artist
+              selectedArtist = "";
+              $(this).css({'background': '#f6f6f6'}); //set to white (off)
+            } else { //we are selecting so turn it on
+              //first check if a previous artist needs turned off
+              if (selectedArtist != "") {
+                //$(this).data('id').css({'background': '#f6f6f6'}); //set to white (off)
+                $(prevArtist).css({'background': '#f6f6f6'}); //set to white (off)
+              };
+              //turn on the newly selected artist
+              $(this).css({'background': 'yellow'}); //set to yellow (on)
+              //update the selectedArtist variable
+              selectedArtist = theID;
+              prevArtist = this;
+            };
+          });
+        },
+
+        error: function () {
+          console.log('failed to pull content for the artists div');
+        }
+    });
+  };
+
+
+  /******** functions to fill the song selector **************/
+function ajaxRequestForSongSelector (url, extra) { 
+    if (extra != '') {
+                var theURL = url + extra; //required when additional params are added like genre
+              } else 
+              {
+                var theURL = url;
+              };
+    //console.log('going to database with URL: ' + theURL);
+    $.ajax({
+          type: 'GET',
+          url: theURL,
+          success: function (result) {
+            console.log('pulled from the database: ');
+           var newHTML = new EJS({url: 'ejs_chunks/songList.ejs'}).render(result);
+           //now write it
+           document.getElementById('songlist').innerHTML = newHTML;
+           //if the user is a teacher show the 'use in class'
+            if (ourUser.teacher == 1) {
+              $('.forTeacherBtn').css("display", "inline");
+            };
+          },
+          error: function () {
+            console.log('failed to pull from the database');
+          }
+    });
+};
+
+function distanceRequestForSongSelector (url) { 
+    $.ajax({
+          type: 'GET',
+          url: '/distanceChoices',
+          success: function (result) {
+            console.log('pulled from the database: ');
+            //check if we have already worked out the location
+            if (usersLong == '') {
+              //we need to get a location - this can take some time so do the next processing on a callback function
+              getLocation(result, function(data, theLat, theLong){
+                  console.log('your lat: ' + theLat + ', your long: ' + theLong);
+                  //calculate distance for each row
+                  for (var i=0; i<data.newData.length; i++) {
+                    //below line is for testing 
+                    //console.log(data.newData[i].artist + ': ' + distance(theLat, data.newData[i].latitude, theLong, data.newData[i].longitude));
+                    data.newData[i].distance = distance(theLat, data.newData[i].latitude, theLong, data.newData[i].longitude);
+                  };
+                  //sort the array based on the distance property
+                  data.newData.sort(function (a, b) {
+                    return a.distance - b.distance;
+                  });
+                  //write the sorted 'data' object to the songChoices div
+                  var newHTML = new EJS({url: 'ejs_chunks/distanceList.ejs'}).render(data);
+                  //now write it
+                  document.getElementById('songlist').innerHTML = newHTML;
+                  //if the user is a teacher show the 'use in class'
+                  if (ourUser.teacher == 1) {
+                    $('.forTeacherBtn').css("display", "inline");
+                  };
+              }); 
+            } else { //we already have the users location so just calculate distance 
+                  for (var i=0; i<result.newData.length; i++) {
+                        //below line is for testing 
+                        //console.log(data.newData[i].artist + ': ' + distance(theLat, data.newData[i].latitude, theLong, data.newData[i].longitude));
+                        result.newData[i].distance = distance(usersLat, result.newData[i].latitude, usersLong, result.newData[i].longitude);
+                      };
+                  //sort the array based on the distance property
+                  result.newData.sort(function (a, b) {
+                    return a.distance - b.distance;
+                  });
+                  //write the sorted 'data' object to the songChoices div
+                  var newHTML = new EJS({url: 'ejs_chunks/distanceList.ejs'}).render(result);
+                  //now write it
+                  document.getElementById('songlist').innerHTML = newHTML;
+            };   
+          },
+          error: function () {
+            console.log('failed to pull from the database');
+          }
+    });
+};
+  
+  /****** generic interactions ******/
+    //main filter buttons
+  $('#local').click(function (e) {
+    setFilters(0); 
+    //now see if we need to update the songlist div
+    if (filters[0] == true) {
+      //display a waiting message
+      document.getElementById('songlist').innerHTML = "<ul class='myUL'><li><i>Calculating. Please wait...</i></li></ul>";
+      //get all the song choices 
+      distanceRequestForSongSelector ('/locationChoices');
+    };
+  });
+
+  $('#genre').click(function (e) {
+    setFilters(1);
+  });
+
+  $('#hot').click(function (e) {
+    setFilters(2); 
+    //now see if we need to update the songlist div
+    if (filters[2] == true) {
+      ajaxRequestForSongSelector ('/hotestChoices', '');
+    };
+  });
+
+  $('#latest').click(function (e) {
+    setFilters(3); 
+    //now see if we need to update the songlist div
+    if (filters[3] == true) {
+      ajaxRequestForSongSelector ('/latestChoices', '');
+    };
+  });
+
+  $('#artist').click(function (e) {
+    setFilters(4); 
+  });
+
+  $('#following').click(function (e) {
+    setFilters(5); 
+    //a holding message for now
+    document.getElementById('songlist').innerHTML = "<ul class='myUL'><li><i>you will need to be logged in before this feature will work</i></li></ul>";
+  });
+
+  $('#lucky').click(function (e) {
+    setFilters(6); 
+    //now see if we need to update the songlist div
+    if (filters[6] == true) {
+      ajaxRequestForSongSelector ('/randomChoices', '');
+    };
+  });
+  
+  //filter2 interactions
+  $('#rock').click(function (e) {
+    setFilterGenre(0); //change the colour of the div as appropriate (yellow or white)
+    //if this is the selected genre
+    if (filterGenre[0] == true) {
+      //call the function that will get the song choices from the DB that match the 'rock' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/rock');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#rnb').click(function (e) {
+    setFilterGenre(1);
+    //if this is the selected genre
+    if (filterGenre[1] == true) {
+      //call the function that will get the song choices from the DB that match the 'rnb' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/rnb');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#pop').click(function (e) {
+    setFilterGenre(2);
+    if (filterGenre[2] == true) {
+      //call the function that will get the song choices from the DB that match the 'pop' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/pop');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#hiphop').click(function (e) {
+    setFilterGenre(3);
+    if (filterGenre[3] == true) {
+      //call the function that will get the song choices from the DB that match the 'hiphop' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/hiphop');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#electronic').click(function (e) {
+    setFilterGenre(4);
+    if (filterGenre[4] == true) {
+      //call the function that will get the song choices from the DB that match the 'electronic' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/electronic');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#folk').click(function (e) {
+    setFilterGenre(5);
+    if (filterGenre[5] == true) {
+      //call the function that will get the song choices from the DB that match the 'folk' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/folk');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#jazz').click(function (e) {
+    setFilterGenre(6);
+    if (filterGenre[6] == true) {
+      //call the function that will get the song choices from the DB that match the 'jazz' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/jazz');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#reggae').click(function (e) {
+    setFilterGenre(7);
+    if (filterGenre[7] == true) {
+      //call the function that will get the song choices from the DB that match the 'reggae' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/reggae');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#blues').click(function (e) {
+    setFilterGenre(8);
+    if (filterGenre[8] == true) {
+      //call the function that will get the song choices from the DB that match the 'blues' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/blues');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#classical').click(function (e) {
+    setFilterGenre(9);
+    if (filterGenre[9] == true) {
+      //call the function that will get the song choices from the DB that match the 'classical' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/classical');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#asian').click(function (e) {
+    setFilterGenre(10);
+    if (filterGenre[10] == true) {
+      //call the function that will get the song choices from the DB that match the 'asian' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/asian');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  $('#african').click(function (e) {
+    setFilterGenre(11);
+    if (filterGenre[11] == true) {
+      //call the function that will get the song choices from the DB that match the 'african' genre criteria
+      ajaxRequestForSongSelector ('/genreChoices', '/african');
+    } else {ajaxRequestForSongSelector ('/genreChoices', '/*');};
+  });
+
+  function getLocation(data, callback) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          //console.log(pos); 
+          usersLat = pos.coords.latitude;
+          usersLong = pos.coords.longitude;
+          callback(data, usersLat, usersLong);
+        });
+    } else { 
+        alert("Cannot sort by location as geolocation is not supported by this browser");
+    }
+  };
+
+
+/** Converts numeric degrees to radians */
+function rad (x) { 
+  return x * Math.PI / 180 
+};
+
+
+function distance (p1lat, p2lat, p1long, p2long) {
+    var R = 6371;
+    var dLat  = rad(p2lat - p1lat);
+    var dLong = rad(p2long - p1long);
+
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(rad(p1lat)) * Math.cos(rad(p2lat)) * Math.sin(dLong/2) * Math.sin(dLong/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+
+    return Math.round(d)
+  };
+
+  function createTeacherSession (songId) {
+    var a = document.createElement('a');
+    a.href='/createTeachingSession/' + songId + '/' + theToken;
+    document.body.appendChild(a);
+    a.click();
+  };
+
+
+  /****** The audio *****************/
+  	var playing = false;
+    var currentSong = '';
+
+  	function playPreview (song, i) {
+  		if (playing == true) { //stop the song playing
+  			stop();
+  			playing = false; 
+        //set all buttons blue
+        $('.previewBtn').css({'background': '#3366ff'}); //set to blue
+        $('.previewBtn').html('play');
+        if (song != currentSong) { //i.e. a song was playing when another song's preview was clicked
+          loadSound(song);
+          playing = true;
+          currentSong = song;
+          //set 'song' button to red
+          $('.previewBtn#' + i).css({'background': '#f44336'}); //set to red
+          $('.previewBtn#' + i).html('stop');
+        };
+  		} else { //no song was playing so just start playing the song
+        loadSound(song);
+        playing = true;
+        currentSong = song;
+        //set 'song' button to red
+        $('.previewBtn#' + i).css({'background': '#f44336'}); //set to red
+        $('.previewBtn#' + i).html('stop');
+      };
+  	};
+
+    //initial set-u pof the web audio environment
+    context = new (window.AudioContext || window.webkitAudioContext)();
+    // var AudioContext = window.AudioContext || window.webkitAudioContext;
+    // var context = new AudioContext();
+    var mySoundBuffer = null;
+    
+    //define the load sound function
+    function loadSound(song){
+      var request = new XMLHttpRequest();
+      request.open("GET", song, true); //path to audio file
+      request.responseType = "arraybuffer"; //reads it in as binary data
+      request.onload = function() {
+        context.decodeAudioData(request.response, function (buffer) {
+          mySoundBuffer = buffer;
+          play();
+        });
+     };
+     request.send();
+   };
+
+   //play function - called from within the loadSound function
+   function play(){
+     sourceNode = context.createBufferSource();
+     sourceNode.buffer = mySoundBuffer;
+     sourceNode.connect(context.destination);
+     sourceNode.start(0);
+   };
+   
+   //stop function
+   function stop() {
+   	sourceNode.stop(0);
+    sourceNode.disconnect();
+	};
+
+  </script>
+  
+  <!-- signUp Modal -->
+  <%-  include partials/signUpM.ejs %>
+
+  <!-- signUp with email Modal -->
+  <%- include partials/signUpWithEmailM.ejs %>
+  
+  <!-- user login script -->
+  <script src="/resources/userLogin.js"></script>
+</body>
+</html>

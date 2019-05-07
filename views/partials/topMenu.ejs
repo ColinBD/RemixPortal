@@ -1,0 +1,163 @@
+<div id="navbar">
+  <div id="navbar--inner">
+    <!-- logo -->
+    <div id="logo-wrapper">
+      <span><a href="/" class="RPlogo">Remix Portal</a></span>
+      <span class="RPlogoBeta">BETA</span>
+    </div>
+
+    <!-- mobile menu toggle -->
+    <div id="menu-toggle">
+      MENU
+    </div>
+
+    <!-- main menu -->
+    <div id="menu">
+      <div id="logo-wrapper">
+        <span><a href="/" class="RPlogo">Remix Portal</a></span>
+        <span class="RPlogoBeta">BETA</span>
+      </div>
+      <ul id="mainMenu">
+        <li><a href="/explorer">EXPLORE</a></li>
+        <li><a href="/learningzone/1">LEARN</a></li>
+        <li><a href="/about">ABOUT</a></li>
+        <li>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdVnb_ldWL6UkdSy-lOKycaGAqEMAh27iyyRZTpJasetVlnhg/viewform?usp=sf_link"
+            target="_blank"
+            >REPORT ISSUE</a
+          >
+        </li>
+        <li id="gotCodeLink"><a>CODE?</a></li>
+
+        <!-- drop down login/out menus -->
+        <li id="auth-dropdown" class="dropdown">
+          <span id="dropLoginLabel"
+            ><a id="dropLogInA" class="login">Log in/sign up</a></span
+          >
+          <span id="dropLogoutLabel"
+            ><a id="dropLogoutA" class="login"></a
+          ></span>
+          <div id="loginDropdown" class="dropdown-content">
+            <a id="signInWithGoogle">Sign in with Google</a>
+            <a id="signInWithFacebook">Sign in with Facebook</a>
+            <a id="signInWithEmail">Sign in with Email</a>
+            <a id="dropCancel">cancel</a>
+          </div>
+          <div id="logoutDropdown" class="dropdown-content">
+            <a id="prof">Profile page</a>
+            <a id="signOut">Sign out</a>
+            <a id="dropOutCancel">cancel</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- got code? modal -->
+<div id="myModal_gotCode" class="modal">
+  <!-- Modal content -->
+  <div id="modal_gotCode_content" class="modal-content">
+    <span class="modal-close">&times;</span>
+    <h2>Got an access code?</h2>
+    <!-- form items to gather the data for the upload -->
+    <form
+      id="gotCodeForm"
+      enctype="multipart/form-data"
+      action="/classSession"
+      method="POST"
+      enctype="multipart/form-data"
+      onsubmit="return checkGotCodeForm()"
+    >
+      <!-- enter code box -->
+      <p>Enter the 5 character code your teacher gave you here:</p>
+      <input
+        type="text"
+        name="gotCodeInput"
+        id="gotCode_id"
+        maxlength="5"
+        size="5"
+        style="border: #e1e1e1 1px solid; font-size:25px;"
+      />
+      <br /><br />
+      <!-- finally a submit button -->
+      <input type="submit" value="Submit" name="submit" class="submitBtn" />
+      <span id="status"></span>
+      <!-- TO DO: select a license section -->
+    </form>
+  </div>
+</div>
+
+<!-- sign in with email modal -->
+<div id="myModal_email" class="modal">
+  <!-- Modal content -->
+  <div id="modal_email_content" class="modal-content">
+    <span class="modal-sUp_close">&times;</span>
+    <h2>Already a member?</h2>
+    <div>
+      email:
+      <input type="email" name="userEmail" id="userEmail_id" />
+      &nbsp&nbsp&nbsp&nbsp password:
+      <input
+        type="text"
+        name="userPassword"
+        id="userPassword_id"
+      /><br /><br /><button
+        id="signInWithEmailBtn"
+        style="background-color: #5ab716; border: none; color: white; width: 98px; height: 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 12px;"
+      >
+        sign in
+      </button>
+      &nbsp&nbsp&nbsp&nbsp
+      <button
+        id="forgotPasswordBtn"
+        style="background-color: orange; border: none; color: white; width: 98px; height: 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 10px;"
+      >
+        forgot password?
+      </button>
+    </div>
+    <h2>OR</h2>
+    <button
+      id="joinWithEmailBtn"
+      style="background-color: #425df4; border: none; color: white; width: 120px; height: 40px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px;"
+    >
+      Join now
+    </button>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var showingMobileNav = false;
+  $("#menu-toggle").click(function() {
+    if (showingMobileNav == false) {
+      showingMobileNav = true;
+      $("#menu").addClass("active");
+    } else {
+      showingMobileNav = false;
+      $("#menu").removeClass("active");
+    }
+    var html = showingMobileNav ? "CLOSE" : "MENU";
+    $("#menu-toggle").html(html);
+  });
+
+  $("#gotCodeLink").click(function() {
+    //display the gotcode? modal
+    $("#myModal_gotCode").css({ display: "block" });
+  });
+
+  //
+  function checkGotCodeForm() {
+    //check we have 5 characters
+    if (
+      $('[name="gotCodeInput"]').val().length < 5 &&
+      $('[name="gotAnotherCodeInput"]').val().length < 5
+    ) {
+      alert("you need to enter 5 characters");
+      return false;
+    } else {
+      //5 characters entered
+      return true;
+    }
+  }
+</script>
